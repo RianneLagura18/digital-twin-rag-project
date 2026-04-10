@@ -14,3 +14,6 @@ RAG-based AI assistant using dataset.
 - Member 4: Frontend Developer
 - Member 5: Digital Twin / Simulation Engineer
 - Member 6: QA Tester
+
+## Update
+Initial PRD submission
