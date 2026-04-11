@@ -38,3 +38,17 @@ The Digital Twin will act as the "Live Knowledge Base" for the chatbot. It allow
     * `usage_frequency`: (High / Medium / Low)
     * `estimated_wait_time`: (Minutes)
 * **Integration:** The simulation will update a local JSON/Markdown file, which the RAG system will query to provide dynamic answers like "Which treadmill is free?" or "When was the leg press last cleaned?"
+
+---
+## 5. Digital Twin / Simulation - Siv
+
+### Use Case: Real-Time Gym Status Engine
+The Digital Twin will act as the "Live Knowledge Base" for our Gym Chatbot. It allows the AI to provide real-time updates on equipment availability and maintenance.
+
+### Simulation Idea
+* **Virtual Asset Modeling:** We will model 15 assets (5 Treadmills, 3 Squat Racks, 2 Bench Presses, 5 Cable Machines).
+* **Real-time Telemetry Simulation:** I will create a Python script to generate mock data for:
+    * `status`: (Available / In-Use / Maintenance)
+    * `usage_frequency`: (High / Medium / Low)
+    * `last_cleaned`: (Timestamp)
+* **Integration:** This simulation will update a local JSON file. The RAG system will query this file to answer questions like *"Which treadmill is free?"* or *"When was the leg press last cleaned?"*
