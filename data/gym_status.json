@@ -1,0 +1,55 @@
+{
+    "gym_name": "AusBiz Fitness Center",
+    "last_updated": "2026-04-11 17:20:31",
+    "equipment": [
+        {
+            "id": "T01",
+            "name": "Treadmill 1",
+            "type": "Cardio",
+            "status": "Maintenance",
+            "usage_hours": 120
+        },
+        {
+            "id": "T02",
+            "name": "Treadmill 2",
+            "type": "Cardio",
+            "status": "In-Use",
+            "usage_hours": 85
+        },
+        {
+            "id": "T03",
+            "name": "Treadmill 3",
+            "type": "Cardio",
+            "status": "Available",
+            "usage_hours": 10
+        },
+        {
+            "id": "S01",
+            "name": "Squat Rack A",
+            "type": "Strength",
+            "status": "Available",
+            "usage_hours": 340
+        },
+        {
+            "id": "S02",
+            "name": "Squat Rack B",
+            "type": "Strength",
+            "status": "Maintenance",
+            "usage_hours": 210
+        },
+        {
+            "id": "B01",
+            "name": "Bench Press 1",
+            "type": "Strength",
+            "status": "In-Use",
+            "usage_hours": 510
+        },
+        {
+            "id": "C01",
+            "name": "Cable Machine 1",
+            "type": "Functional",
+            "status": "Available",
+            "usage_hours": 95
+        }
+    ]
+}
