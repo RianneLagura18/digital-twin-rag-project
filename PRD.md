@@ -52,10 +52,10 @@ The Digital Twin will act as the "Live Knowledge Base" for our Gym Chatbot. It a
     * `usage_frequency`: (High / Medium / Low)
     * `last_cleaned`: (Timestamp)
 * **Integration:** This simulation will update a local JSON file. The RAG system will query this file to answer questions like *"Which treadmill is free?"* or *"When was the leg press last cleaned?"*
-## Backend Plan
+## Backend Developer - Antonette
 
-* Build APIs for the digital twin system
-* Handle data processing and storage
-* Integrate sensors or simulated data
-* Ensure system performance  and security
+- Build APIs for the digital twin system  
+- Handle data processing and storage  
+- Integrate sensors or simulated data  
+- Ensure system performance and security  
   
