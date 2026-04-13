@@ -58,4 +58,3 @@ The Digital Twin will act as the "Live Knowledge Base" for our Gym Chatbot. It a
 - Handle data processing and storage  
 - Integrate sensors or simulated data  
 - Ensure system performance and security  
-  
