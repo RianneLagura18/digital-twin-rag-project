@@ -11,5 +11,5 @@ The Digital Twin uses a **Python-based Telemetry Simulator** to provide real-tim
 ## Implementation Plan
 - [x] Base JSON data structure (Week 6 Infrastructure)
 - [x] Python Simulation script (Week 6 Infrastructure)
-- [ ] Add "Peak Hour" logic to simulation (Next Step)
+- [x] Add "Peak Hour" logic to simulation 
 - [ ] Integrate with Backend API (Coordination with Antonette)
