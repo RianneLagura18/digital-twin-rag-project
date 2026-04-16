@@ -13,3 +13,12 @@ The Digital Twin uses a **Python-based Telemetry Simulator** to provide real-tim
 - [x] Python Simulation script (Week 6 Infrastructure)
 - [x] Add "Peak Hour" logic to simulation 
 - [ ] Integrate with Backend API (Coordination with Antonette)
+
+## Data Integration Guide (For Team)
+To retrieve the live state of any gym asset, use the following key-value pairs from `data/gym_status.json`:
+- `status`: Current state (Available, In-Use, Maintenance)
+- `usage_hours`: Cumulative wear-and-tear data.
+- `last_updated`: Real-time sync timestamp.
+
+**Example Query:** "Is Treadmill 1 available?" 
+**RAG Logic:** Filter `equipment` where `name` == "Treadmill 1" and return `status`.
