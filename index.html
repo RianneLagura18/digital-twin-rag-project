@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gym Chatbot</title>
+</head>
+
+<body>
+
+<h2>🏋️ Gym Fitness Chatbot</h2>
+
+<input type="text" id="input" placeholder="Ask something..." />
+<button onclick="send()">Send</button>
+
+<p id="response"></p>
+
+<script>
+function send() {
+  const input = document.getElementById("input").value;
+  document.getElementById("response").innerText = "Thinking...";
+
+  setTimeout(() => {
+    document.getElementById("response").innerText =
+      "Try basic workouts like push-ups and squats.";
+  }, 1000);
+}
+</script>
+
+</body>
+</html>
