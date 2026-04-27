@@ -1,0 +1,25 @@
+MCP Test Result — AusBiz Fitness Center Digital Twin
+Tester: Rion Poblete 
+
+TEST 1: MCP Server Connection
+Status: Pending — waiting for Antonette to complete server setup
+
+TEST 2: Tool Definition Check
+Status: Pending
+
+TEST 3: RAG Query Test
+Query: "What are the membership prices?"
+Expected: Returns correct pricing information
+Status: Pending
+
+TEST 4: RAG Query Test
+Query: "What are your opening hours?"
+Expected: Returns correct schedule
+Status: Pending
+
+TEST 5: RAG Query Test
+Query: "What fitness classes do you offer?"
+Expected: Returns list of classes
+Status: Pending
+
+OVERALL RESULT: Pending — MCP server setup in progress
