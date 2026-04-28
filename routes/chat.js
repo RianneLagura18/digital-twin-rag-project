@@ -1,35 +1,59 @@
 const express = require("express");
 const router = express.Router();
 
-router.post("/", (req, res) => {
+const index = require("../lib/upstash");
+const embed = require("../lib/embeddings");
+
+router.post("/", async (req, res) => {
   const { message } = req.body;
 
-  // validation
   if (!message) {
     return res.status(400).json({
       success: false,
-      error: "Message is required"
+      error: "Message is required",
     });
   }
 
-  // simple chatbot logic (Week 6 requirement)
-  let botReply = "I don't understand.";
+  try {
+    // 1. Convert message to vector
+    const queryVector = await embed(message);
 
-  if (message.toLowerCase().includes("hello")) {
-    botReply = "Hi! 👋 Welcome to AusBiz Fitness Center.";
-  } 
-  else if (message.toLowerCase().includes("price")) {
-    botReply = "Membership starts at ₱999/month.";
-  } 
-  else if (message.toLowerCase().includes("schedule")) {
-    botReply = "We are open daily from 6AM to 10PM.";
+    // 2. Search Upstash memory
+    const results = await index.query({
+      vector: queryVector,
+      topK: 3,
+      includeMetadata: true,
+    });
+
+    // 3. Extract context
+    const context = results
+      .map((r) => r.metadata?.text)
+      .filter(Boolean)
+      .join("\n");
+
+    // 4. Build response
+    let botReply;
+
+    if (context.length > 0) {
+      botReply = `I found relevant information:\n\n${context}`;
+    } else {
+      botReply = "I don't have enough information in memory yet.";
+    }
+
+    return res.json({
+      success: true,
+      userMessage: message,
+      context,
+      botReply,
+      results,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
   }
-
-  return res.json({
-    success: true,
-    userMessage: message,
-    botReply
-  });
 });
 
 module.exports = router;

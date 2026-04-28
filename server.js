@@ -1,6 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+// ✅ ADD THIS (TEST ONLY)
+console.log("UPSTASH URL:", process.env.UPSTASH_VECTOR_REST_URL);
+console.log("UPSTASH TOKEN EXISTS:", !!process.env.UPSTASH_VECTOR_REST_TOKEN);
 
 const app = express();
 
