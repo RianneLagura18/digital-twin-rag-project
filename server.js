@@ -1,35 +1,93 @@
 import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import mcpApp from "./src/server.js";
-
-dotenv.config();
 
 const app = express();
+const PORT = 5050;
 
-// =========================
-// MIDDLEWARE
-// =========================
-app.use(cors());
 app.use(express.json());
 
 // =========================
-// HEALTH CHECK
+// ROOT CHECK
 // =========================
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
+app.get("/", (req, res) => {
+  res.send("Main API is running 🚀");
 });
 
+console.log("INTERVIEW ROUTE LOADED");
+
 // =========================
-// MCP ROUTE MOUNT
+// INTERVIEW API (MCP + RAG)
 // =========================
-app.use("/mcp", mcpApp);
+app.post("/api/interview", async (req, res) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
+  try {
+    const { question } = req.body;
+
+    console.log("INTERVIEW QUESTION:", question);
+
+    if (!question) {
+      return res.status(400).json({
+        success: false,
+        error: "Question is required",
+      });
+    }
+
+    // =========================
+    // MCP CALL (VECTOR SEARCH)
+    // =========================
+    const mcpResponse = await fetch("http://localhost:5051", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tool: "vector_search",
+        input: question,
+      }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeout);
+
+    if (!mcpResponse.ok) {
+      throw new Error("MCP server error");
+    }
+
+    const data = await mcpResponse.json();
+
+    console.log("MCP RESPONSE:", data);
+
+    const contextText =
+      data.result?.map((r) => r.text).join("\n") || "";
+
+    return res.json({
+      success: true,
+      question,
+      context: data.result,
+      answer: contextText
+        ? `Interview Insight:\n\n${contextText}`
+        : "No relevant knowledge found for this question.",
+      meta: {
+        source: "mcp + vector_search",
+      },
+    });
+
+  } catch (err) {
+    clearTimeout(timeout);
+
+    console.error("INTERVIEW ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
 
 // =========================
 // START SERVER
 // =========================
-const PORT = process.env.PORT || 5050;
-
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🚀 Main API running on http://localhost:${PORT}`);
 });
