@@ -1,72 +1,38 @@
 import express from "express";
 
 const app = express();
-const PORT = 5050;
 
-// Middleware
 app.use(express.json());
 
-// ===== ROOT CHECK =====
-app.get("/", (req, res) => {
-  res.send("Main API is running 🚀");
-});
-
-// ===== INTERVIEW API =====
-console.log("INTERVIEW ROUTE LOADED");
-
-app.post("/api/interview", async (req, res) => {
+// =========================
+// MCP TOOL HANDLER
+// =========================
+app.post("/", async (req, res) => {
   try {
-    const { question } = req.body;
+    const { tool, input } = req.body;
 
-    console.log("INTERVIEW QUESTION:", question);
+    console.log("MCP REQUEST:", tool, input);
 
-    if (!question) {
-      return res.status(400).json({
-        success: false,
-        error: "Question is required",
+    if (tool === "vector_search") {
+      // 🔥 Dummy data (replace later with Upstash)
+      return res.json({
+        result: [
+          { text: "Sample result 1 for: " + input },
+          { text: "Sample result 2 for: " + input },
+        ],
       });
     }
 
-    // 🔥 Call MCP SERVER (port 5051 now)
-    const mcpResponse = await fetch("http://localhost:5051", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tool: "vector_search",
-        input: question,
-      }),
-    });
-
-    const data = await mcpResponse.json();
-
-    console.log("MCP RESPONSE:", data);
-
-    const contextText =
-      data.result?.map((r) => r.text).join("\n") || "";
-
-    return res.json({
-      success: true,
-      question,
-      context: data.result,
-      answer: contextText
-        ? `Interview Insight:\n\n${contextText}`
-        : "No relevant knowledge found for this question.",
-      meta: {
-        source: "mcp + vector_search",
-      },
+    return res.status(400).json({
+      error: "Unknown tool",
     });
   } catch (err) {
-    console.error("INTERVIEW ERROR:", err);
+    console.error("MCP ERROR:", err);
     res.status(500).json({
-      success: false,
       error: err.message,
     });
   }
 });
 
-// ===== START SERVER =====
-app.listen(PORT, () => {
-  console.log(`🚀 Main API running on http://localhost:${PORT}`);
-});
+// ✅ VERY IMPORTANT
+export default app;
