@@ -1,41 +1,41 @@
 import express from "express";
+import cors from "cors";
 
 const app = express();
 const PORT = 5050;
 
+// =========================
+// MIDDLEWARE
+// =========================
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST"],
+}));
+
 app.use(express.json());
 
 // =========================
-// ROOT CHECK
+// ROOT
 // =========================
 app.get("/", (req, res) => {
   res.send("Main API is running 🚀");
 });
 
-console.log("INTERVIEW ROUTE LOADED");
-
 // =========================
-// INTERVIEW API (MCP + RAG)
+// INTERVIEW API (RAG)
 // =========================
 app.post("/api/interview", async (req, res) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
   try {
-    const { question } = req.body;
+    const { question, input } = req.body;
+    const userQuestion = question || input;
 
-    console.log("INTERVIEW QUESTION:", question);
-
-    if (!question) {
-      return res.status(400).json({
+    if (!userQuestion) {
+      return res.json({
         success: false,
         error: "Question is required",
       });
     }
 
-    // =========================
-    // MCP CALL (VECTOR SEARCH)
-    // =========================
     const mcpResponse = await fetch("http://localhost:5051", {
       method: "POST",
       headers: {
@@ -43,44 +43,69 @@ app.post("/api/interview", async (req, res) => {
       },
       body: JSON.stringify({
         tool: "vector_search",
-        input: question,
+        input: userQuestion,
       }),
-      signal: controller.signal,
     });
 
-    clearTimeout(timeout);
-
-    if (!mcpResponse.ok) {
-      throw new Error("MCP server error");
-    }
-
     const data = await mcpResponse.json();
+    const results = data.result || [];
 
-    console.log("MCP RESPONSE:", data);
-
-    const contextText =
-      data.result?.map((r) => r.text).join("\n") || "";
+    const contextText = results.map(r => r.text).join("\n");
 
     return res.json({
       success: true,
-      question,
-      context: data.result,
-      answer: contextText
-        ? `Interview Insight:\n\n${contextText}`
-        : "No relevant knowledge found for this question.",
-      meta: {
-        source: "mcp + vector_search",
-      },
+      answer: contextText || "No relevant data found.",
+      context: results,
     });
 
   } catch (err) {
-    clearTimeout(timeout);
+    console.error(err);
 
-    console.error("INTERVIEW ERROR:", err);
-
-    return res.status(500).json({
+    return res.json({
       success: false,
-      error: err.message,
+      error: "Server error",
+    });
+  }
+});
+
+// =========================
+// CHATBOT ROUTE (FRONTEND)
+// =========================
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.json({ reply: "No message provided" });
+    }
+
+    const mcpResponse = await fetch("http://localhost:5051", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tool: "vector_search",
+        input: message,
+      }),
+    });
+
+    const data = await mcpResponse.json();
+    const results = data.result || [];
+
+    const replyText = results.length
+      ? results.map(r => r.text).join("\n")
+      : "No results found.";
+
+    return res.json({
+      reply: `💡 ${replyText}`,
+    });
+
+  } catch (err) {
+    console.error(err);
+
+    return res.json({
+      reply: "Server error",
     });
   }
 });
