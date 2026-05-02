@@ -1,0 +1,16 @@
+Bugs and Issues Report — AusBiz Fitness Center Digital Twin
+Tester: Rion Poblete
+
+BUG 1: Low similarity scores on MCP queries
+- Severity: Minor
+- Description: MCP vector search returns scores around 0.53
+- Expected: Scores above 0.7
+- Recommendation: Add more specific AusBiz data to Upstash
+
+BUG 2: Generic results returned for specific queries
+- Severity: Minor  
+- Description: Some queries return general workout content instead of AusBiz specific content
+- Expected: AusBiz specific results only
+- Recommendation: Add more AusBiz specific vectors
+
+OVERALL: System is functional but could be improved with more specific data.
