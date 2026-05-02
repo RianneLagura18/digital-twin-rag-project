@@ -1,25 +1,26 @@
 MCP Test Result — AusBiz Fitness Center Digital Twin
 Tester: Rion Poblete 
 
-TEST 1: MCP Server Connection
-Status: Pending — waiting for Antonette to complete server setup
+MCP SERVER DETAILS
+- File: src/mcp-server/index.js
+- Port: 5051
+- Tool: vector_search
+- Database: Upstash Vector (AusBizFitnessCenter)
 
-TEST 2: Tool Definition Check
-Status: Pending
+TEST QUERY 1: AusBiz Fitness Center membership plans
+- Status: PASS 
+- Results returned: 3
+- Top score: 0.530
 
-TEST 3: RAG Query Test
-Query: "What are the membership prices?"
-Expected: Returns correct pricing information
-Status: Pending
+TEST QUERY 2: opening hours
+- Status: PASS 
+- Results returned: 3
 
-TEST 4: RAG Query Test
-Query: "What are your opening hours?"
-Expected: Returns correct schedule
-Status: Pending
+TEST QUERY 3: fitness classes
+- Status: PASS 
+- Results returned: 3
 
-TEST 5: RAG Query Test
-Query: "What fitness classes do you offer?"
-Expected: Returns list of classes
-Status: Pending
-
-OVERALL RESULT: Pending — MCP server setup in progress
+OVERALL RESULT: PASS 
+MCP server is running correctly on port 5051.
+RAG integration with Upstash Vector is working.
+Vector search is returning relevant results.
