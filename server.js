@@ -14,6 +14,12 @@ app.use(cors({
 
 app.use(express.json());
 
+// Request logger (for debugging only)
+app.use((req, res, next) => {
+  console.log("🌐 REQUEST:", req.method, req.url);
+  next();
+});
+
 // =========================
 // ROOT
 // =========================
@@ -22,12 +28,14 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// INTERVIEW API (RAG)
+// INTERVIEW API (CLEAN RAG)
 // =========================
 app.post("/api/interview", async (req, res) => {
   try {
     const { question, input } = req.body;
     const userQuestion = question || input;
+
+    console.log("📩 Interview question:", userQuestion);
 
     if (!userQuestion) {
       return res.json({
@@ -36,7 +44,7 @@ app.post("/api/interview", async (req, res) => {
       });
     }
 
-    const mcpResponse = await fetch("http://localhost:5051", {
+    const mcpResponse = await fetch("http://127.0.0.1:5051", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -47,19 +55,27 @@ app.post("/api/interview", async (req, res) => {
       }),
     });
 
-    const data = await mcpResponse.json();
-    const results = data.result || [];
+    if (!mcpResponse.ok) {
+      throw new Error("MCP request failed (Interview)");
+    }
 
-    const contextText = results.map(r => r.text).join("\n");
+    const data = await mcpResponse.json();
+
+    const results = (data.result || []).slice(0, 3);
+
+    // ✅ CLEAN ANSWER ONLY
+    const answer = results.length
+      ? results.map(r => r.text).join("\n")
+      : "No relevant data found.";
 
     return res.json({
       success: true,
-      answer: contextText || "No relevant data found.",
+      answer,
       context: results,
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ INTERVIEW ERROR:", err);
 
     return res.json({
       success: false,
@@ -69,17 +85,19 @@ app.post("/api/interview", async (req, res) => {
 });
 
 // =========================
-// CHATBOT ROUTE (FRONTEND)
+// CHATBOT ROUTE (CLEAN RAG)
 // =========================
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
+    console.log("📩 Incoming message:", message);
+
     if (!message) {
       return res.json({ reply: "No message provided" });
     }
 
-    const mcpResponse = await fetch("http://localhost:5051", {
+    const mcpResponse = await fetch("http://127.0.0.1:5051", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -90,19 +108,26 @@ app.post("/api/chat", async (req, res) => {
       }),
     });
 
-    const data = await mcpResponse.json();
-    const results = data.result || [];
+    if (!mcpResponse.ok) {
+      throw new Error("MCP request failed (Chat)");
+    }
 
+    const data = await mcpResponse.json();
+
+    const results = (data.result || []).slice(0, 3);
+
+    // ✅ CLEAN ANSWER ONLY (NO PROMPTS, NO REASONING)
     const replyText = results.length
       ? results.map(r => r.text).join("\n")
-      : "No results found.";
+      : "No relevant results found.";
 
     return res.json({
-      reply: `💡 ${replyText}`,
+      reply: replyText,
+      context: results,
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ CHAT ERROR:", err);
 
     return res.json({
       reply: "Server error",
