@@ -1,27 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Gym Chatbot</title>
+  <title>Gym Fitness Chatbot</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #1e1e2f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-box {
+      width: 400px;
+      height: 500px;
+      background: #2c2c3e;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: #4CAF50;
+      padding: 10px;
+      color: white;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .messages {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .message {
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 70%;
+    }
+
+    .user {
+      background: #4CAF50;
+      color: white;
+      align-self: flex-end;
+    }
+
+    .bot {
+      background: #ddd;
+      align-self: flex-start;
+    }
+
+    .input-area {
+      display: flex;
+      border-top: 1px solid #444;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+    }
+
+    button {
+      padding: 10px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>🏋️ Gym Fitness Chatbot</h2>
+<div class="chat-box">
+  <div class="header">🏋️ Gym Fitness Chatbot</div>
 
-<input type="text" id="input" placeholder="Ask something..." />
-<button onclick="send()">Send</button>
+  <div class="messages" id="messages"></div>
 
-<p id="response"></p>
+  <div class="input-area">
+    <input type="text" id="input" placeholder="Ask about fitness..." />
+    <button onclick="send()">Send</button>
+  </div>
+</div>
 
 <script>
 function send() {
-  const input = document.getElementById("input").value;
-  document.getElementById("response").innerText = "Thinking...";
+  const input = document.getElementById("input");
+  const text = input.value;
+
+  if (!text) return;
+
+  addMessage(text, "user");
+  input.value = "";
+
+  addMessage("Thinking...", "bot");
 
   setTimeout(() => {
-    document.getElementById("response").innerText =
-      "Try basic workouts like push-ups and squats.";
+    document.getElementById("messages").lastChild.remove();
+
+    let response = "Stay consistent and train 3x a week.";
+
+    if (text.toLowerCase().includes("beginner")) {
+      response = "Start with squats, push-ups, and light cardio.";
+    } else if (text.toLowerCase().includes("lose weight")) {
+      response = "Combine cardio with calorie deficit diet.";
+    }
+
+    addMessage(response, "bot");
   }, 1000);
+}
+
+function addMessage(text, type) {
+  const messages = document.getElementById("messages");
+
+  const msg = document.createElement("div");
+  msg.classList.add("message", type);
+  msg.innerText = text;
+
+  messages.appendChild(msg);
+  messages.scrollTop = messages.scrollHeight;
 }
 </script>
 
