@@ -1,0 +1,11 @@
+Candidate: Alex Rivera
+
+Technical Question: How would you use the Digital Twin to reduce costs?
+
+Answer: I’d monitor the "In-Use" vs. "Maintenance" logs to adjust cleaning schedules.
+
+Score: 92/100
+
+Result: PASS
+
+Recommendation: High potential; strong grasp of data-driven management.

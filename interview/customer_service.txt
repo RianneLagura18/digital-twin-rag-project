@@ -1,0 +1,11 @@
+Candidate: Casey Morgan
+
+Technical Question: A member complains about opening hours. How do you respond?
+
+Answer: I check the AusBiz official hours and offer class schedule alternatives.
+
+Score: 78/100
+
+Result: PASS
+
+Recommendation: Pass; good soft skills but needs more training on gym facilities.

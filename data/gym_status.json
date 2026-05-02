@@ -1,12 +1,12 @@
 {
     "gym_name": "AusBiz Fitness Center",
-    "last_updated": "2026-04-11 17:30:45",
+    "last_updated": "2026-04-16 19:24:44",
     "equipment": [
         {
             "id": "T01",
             "name": "Treadmill 1",
             "type": "Cardio",
-            "status": "Maintenance",
+            "status": "In-Use",
             "usage_hours": 120
         },
         {
@@ -20,7 +20,7 @@
             "id": "T03",
             "name": "Treadmill 3",
             "type": "Cardio",
-            "status": "Maintenance",
+            "status": "In-Use",
             "usage_hours": 10
         },
         {
@@ -41,14 +41,14 @@
             "id": "B01",
             "name": "Bench Press 1",
             "type": "Strength",
-            "status": "Available",
+            "status": "In-Use",
             "usage_hours": 510
         },
         {
             "id": "C01",
             "name": "Cable Machine 1",
             "type": "Functional",
-            "status": "Maintenance",
+            "status": "In-Use",
             "usage_hours": 95
         }
     ]
