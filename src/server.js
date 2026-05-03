@@ -1,72 +1,28 @@
 import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
-const PORT = 5050;
+const PORT = process.env.PORT || 5052;
 
-// Middleware
+app.use(cors());
 app.use(express.json());
 
-// ===== ROOT CHECK =====
+// ===============================
+// BACKUP API LAYER (SAFE)
+// ===============================
 app.get("/", (req, res) => {
-  res.send("Main API is running 🚀");
+  res.send("src/server.js is active (backup API layer)");
 });
 
-// ===== INTERVIEW API =====
-console.log("INTERVIEW ROUTE LOADED");
+// ===============================
+// OPTIONAL MCP FORWARDING PLACEHOLDER
+// (DO NOT BREAK MCP LOGIC)
+// ===============================
+// Future use only
 
-app.post("/api/interview", async (req, res) => {
-  try {
-    const { question } = req.body;
-
-    console.log("INTERVIEW QUESTION:", question);
-
-    if (!question) {
-      return res.status(400).json({
-        success: false,
-        error: "Question is required",
-      });
-    }
-
-    // 🔥 Call MCP SERVER (port 5051 now)
-    const mcpResponse = await fetch("http://localhost:5051", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        tool: "vector_search",
-        input: question,
-      }),
-    });
-
-    const data = await mcpResponse.json();
-
-    console.log("MCP RESPONSE:", data);
-
-    const contextText =
-      data.result?.map((r) => r.text).join("\n") || "";
-
-    return res.json({
-      success: true,
-      question,
-      context: data.result,
-      answer: contextText
-        ? `Interview Insight:\n\n${contextText}`
-        : "No relevant knowledge found for this question.",
-      meta: {
-        source: "mcp + vector_search",
-      },
-    });
-  } catch (err) {
-    console.error("INTERVIEW ERROR:", err);
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
-});
-
-// ===== START SERVER =====
 app.listen(PORT, () => {
-  console.log(`🚀 Main API running on http://localhost:${PORT}`);
+  console.log(`src/server running on http://localhost:${PORT}`);
 });
