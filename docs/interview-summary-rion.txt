@@ -31,5 +31,5 @@ JOB 5: Personal Trainer
 - Result: PASS 
 - Recommendation: Hire
 
-OVERALL RESULT: ALL 5 PASSED ✅
+OVERALL RESULT: ALL 5 PASSED 
 Average Score: 87.4/100
