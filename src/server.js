@@ -1,28 +1,45 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-
-dotenv.config();
+const express = require("express");
+const cors = require("cors");
 
 const app = express();
-const PORT = process.env.PORT || 5052;
 
+// middleware
 app.use(cors());
 app.use(express.json());
 
-// ===============================
-// BACKUP API LAYER (SAFE)
-// ===============================
+// =========================
+// HEALTH CHECK (IMPORTANT)
+// =========================
 app.get("/", (req, res) => {
-  res.send("src/server.js is active (backup API layer)");
+  res.status(200).send("Digital Twin RAG API is running");
 });
 
-// ===============================
-// OPTIONAL MCP FORWARDING PLACEHOLDER
-// (DO NOT BREAK MCP LOGIC)
-// ===============================
-// Future use only
+// =========================
+// CHAT ROUTE (YOUR MAIN API)
+// =========================
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
 
-app.listen(PORT, () => {
-  console.log(`src/server running on http://localhost:${PORT}`);
+    // TEMP SAFE RESPONSE (DO NOT BREAK RAG YET)
+    // later we will reconnect your aiService + MCP here
+    res.status(200).json({
+      success: true,
+      reply: "Backend is deployed successfully. RAG/MCP still intact.",
+      input: message || null
+    });
+
+  } catch (error) {
+    console.error("Chat API Error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: "Server error"
+    });
+  }
 });
+
+// =========================
+// EXPORT FOR VERCEL
+// =========================
+module.exports = app;
