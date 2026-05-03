@@ -1,86 +1,165 @@
 import express from "express";
+import cors from "cors";
 
 const app = express();
 const PORT = 5050;
 
+// =========================
+// MIDDLEWARE
+// =========================
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST"],
+}));
+
 app.use(express.json());
 
+// Request logger (for debugging only)
+app.use((req, res, next) => {
+  console.log("🌐 REQUEST:", req.method, req.url);
+  next();
+});
+
 // =========================
-// ROOT CHECK
+// ROOT
 // =========================
 app.get("/", (req, res) => {
   res.send("Main API is running 🚀");
 });
 
-console.log("INTERVIEW ROUTE LOADED");
-
 // =========================
-// INTERVIEW API (MCP + RAG)
+// INTERVIEW API (WITH SCORE + RECOMMENDATION)
 // =========================
 app.post("/api/interview", async (req, res) => {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5000);
-
   try {
-    const { question } = req.body;
+    const { question, input } = req.body;
+    const userQuestion = question || input;
 
-    console.log("INTERVIEW QUESTION:", question);
+    console.log("📩 Interview question:", userQuestion);
 
-    if (!question) {
-      return res.status(400).json({
+    if (!userQuestion) {
+      return res.json({
         success: false,
         error: "Question is required",
       });
     }
 
-    // =========================
-    // MCP CALL (VECTOR SEARCH)
-    // =========================
-    const mcpResponse = await fetch("http://localhost:5051", {
+    const mcpResponse = await fetch("http://127.0.0.1:5051", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         tool: "vector_search",
-        input: question,
+        input: userQuestion,
       }),
-      signal: controller.signal,
     });
 
-    clearTimeout(timeout);
-
     if (!mcpResponse.ok) {
-      throw new Error("MCP server error");
+      throw new Error("MCP request failed (Interview)");
     }
 
     const data = await mcpResponse.json();
+    const results = (data.result || []).slice(0, 3);
 
-    console.log("MCP RESPONSE:", data);
+    // =========================
+    // CLEAN ANSWER (UNCHANGED)
+    // =========================
+    const answer = results.length
+      ? results.map(r => r.text).join("\n")
+      : "No relevant data found.";
 
-    const contextText =
-      data.result?.map((r) => r.text).join("\n") || "";
+    // =========================
+    // SAFE SCORE (NO MCP CHANGE)
+    // =========================
+    let score = 0;
 
+    if (results.length === 0) score = 20;
+    else if (results.length === 1) score = 50;
+    else if (results.length === 2) score = 75;
+    else score = 90;
+
+    // =========================
+    // SAFE RECOMMENDATION
+    // =========================
+    let recommendation = "";
+
+    if (score >= 80) {
+      recommendation = "Excellent answer. Keep it up!";
+    } else if (score >= 60) {
+      recommendation = "Good answer, but you can improve with more details.";
+    } else if (score >= 40) {
+      recommendation = "Fair answer. Try to be more specific.";
+    } else {
+      recommendation = "Needs improvement. Review the topic.";
+    }
+
+    // =========================
+    // FINAL RESPONSE (EXTENDED)
+    // =========================
     return res.json({
       success: true,
-      question,
-      context: data.result,
-      answer: contextText
-        ? `Interview Insight:\n\n${contextText}`
-        : "No relevant knowledge found for this question.",
-      meta: {
-        source: "mcp + vector_search",
-      },
+      answer,
+      score,
+      recommendation,
+      context: results,
     });
 
   } catch (err) {
-    clearTimeout(timeout);
+    console.error("❌ INTERVIEW ERROR:", err);
 
-    console.error("INTERVIEW ERROR:", err);
-
-    return res.status(500).json({
+    return res.json({
       success: false,
-      error: err.message,
+      error: "Server error",
+    });
+  }
+});
+
+// =========================
+// CHATBOT ROUTE (UNCHANGED)
+// =========================
+app.post("/api/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    console.log("📩 Incoming message:", message);
+
+    if (!message) {
+      return res.json({ reply: "No message provided" });
+    }
+
+    const mcpResponse = await fetch("http://127.0.0.1:5051", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        tool: "vector_search",
+        input: message,
+      }),
+    });
+
+    if (!mcpResponse.ok) {
+      throw new Error("MCP request failed (Chat)");
+    }
+
+    const data = await mcpResponse.json();
+    const results = (data.result || []).slice(0, 3);
+
+    const replyText = results.length
+      ? results.map(r => r.text).join("\n")
+      : "No relevant results found.";
+
+    return res.json({
+      reply: replyText,
+      context: results,
+    });
+
+  } catch (err) {
+    console.error("❌ CHAT ERROR:", err);
+
+    return res.json({
+      reply: "Server error",
     });
   }
 });
