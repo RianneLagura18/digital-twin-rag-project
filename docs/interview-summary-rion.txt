@@ -1,23 +1,23 @@
 Interview Simulation Summary — AusBiz Fitness Center Digital Twin
-Tester: Rion Poblete
+QA Tester: Rion Poblete
 
 JOB 1: Class Coordinator
 - Candidate: Riley Quinn
 - Score: 84/100
 - Result: PASS 
-- Recommendation: Hire; proactive use of Digital Twin data for scheduling
+- Recommendation: Hire
 
 JOB 2: Customer Service
 - Candidate: Casey Morgan
 - Score: 78/100
 - Result: PASS 
-- Recommendation: Pass; good soft skills but needs more training
+- Recommendation: Pass with training
 
 JOB 3: Gym Manager
 - Candidate: Alex Rivera
 - Score: 92/100
 - Result: PASS 
-- Recommendation: High potential; strong grasp of data-driven management
+- Recommendation: High potential
 
 JOB 4: Maintenance Tech
 - Candidate: Jordan Lee
@@ -29,8 +29,7 @@ JOB 5: Personal Trainer
 - Candidate: Sam Taylor
 - Score: 88/100
 - Result: PASS 
-- Recommendation: Hire; excellent communication and safety focus
+- Recommendation: Hire
 
-OVERALL RESULT: ALL 5 PASSED 
+OVERALL RESULT: ALL 5 PASSED ✅
 Average Score: 87.4/100
-All candidates demonstrated good understanding of AusBiz Fitness Center systems.
