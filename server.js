@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// INTERVIEW API (CLEAN RAG)
+// INTERVIEW API (WITH SCORE + RECOMMENDATION)
 // =========================
 app.post("/api/interview", async (req, res) => {
   try {
@@ -60,17 +60,48 @@ app.post("/api/interview", async (req, res) => {
     }
 
     const data = await mcpResponse.json();
-
     const results = (data.result || []).slice(0, 3);
 
-    // ✅ CLEAN ANSWER ONLY
+    // =========================
+    // CLEAN ANSWER (UNCHANGED)
+    // =========================
     const answer = results.length
       ? results.map(r => r.text).join("\n")
       : "No relevant data found.";
 
+    // =========================
+    // SAFE SCORE (NO MCP CHANGE)
+    // =========================
+    let score = 0;
+
+    if (results.length === 0) score = 20;
+    else if (results.length === 1) score = 50;
+    else if (results.length === 2) score = 75;
+    else score = 90;
+
+    // =========================
+    // SAFE RECOMMENDATION
+    // =========================
+    let recommendation = "";
+
+    if (score >= 80) {
+      recommendation = "Excellent answer. Keep it up!";
+    } else if (score >= 60) {
+      recommendation = "Good answer, but you can improve with more details.";
+    } else if (score >= 40) {
+      recommendation = "Fair answer. Try to be more specific.";
+    } else {
+      recommendation = "Needs improvement. Review the topic.";
+    }
+
+    // =========================
+    // FINAL RESPONSE (EXTENDED)
+    // =========================
     return res.json({
       success: true,
       answer,
+      score,
+      recommendation,
       context: results,
     });
 
@@ -85,7 +116,7 @@ app.post("/api/interview", async (req, res) => {
 });
 
 // =========================
-// CHATBOT ROUTE (CLEAN RAG)
+// CHATBOT ROUTE (UNCHANGED)
 // =========================
 app.post("/api/chat", async (req, res) => {
   try {
@@ -113,10 +144,8 @@ app.post("/api/chat", async (req, res) => {
     }
 
     const data = await mcpResponse.json();
-
     const results = (data.result || []).slice(0, 3);
 
-    // ✅ CLEAN ANSWER ONLY (NO PROMPTS, NO REASONING)
     const replyText = results.length
       ? results.map(r => r.text).join("\n")
       : "No relevant results found.";
