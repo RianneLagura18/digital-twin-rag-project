@@ -14,7 +14,6 @@ app.use(cors({
 
 app.use(express.json());
 
-// Request logger (for debugging only)
 app.use((req, res, next) => {
   console.log("🌐 REQUEST:", req.method, req.url);
   next();
@@ -28,14 +27,12 @@ app.get("/", (req, res) => {
 });
 
 // =========================
-// INTERVIEW API (WITH SCORE + RECOMMENDATION)
+// INTERVIEW API (IMPROVED STABILITY)
 // =========================
 app.post("/api/interview", async (req, res) => {
   try {
     const { question, input } = req.body;
     const userQuestion = question || input;
-
-    console.log("📩 Interview question:", userQuestion);
 
     if (!userQuestion) {
       return res.json({
@@ -46,9 +43,7 @@ app.post("/api/interview", async (req, res) => {
 
     const mcpResponse = await fetch("http://127.0.0.1:5051", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tool: "vector_search",
         input: userQuestion,
@@ -56,47 +51,28 @@ app.post("/api/interview", async (req, res) => {
     });
 
     if (!mcpResponse.ok) {
-      throw new Error("MCP request failed (Interview)");
+      throw new Error("MCP request failed");
     }
 
     const data = await mcpResponse.json();
-    const results = (data.result || []).slice(0, 3);
+    const results = (data.result || []).slice(0, 5);
 
-    // =========================
-    // CLEAN ANSWER (UNCHANGED)
-    // =========================
     const answer = results.length
       ? results.map(r => r.text).join("\n")
       : "No relevant data found.";
 
-    // =========================
-    // SAFE SCORE (NO MCP CHANGE)
-    // =========================
     let score = 0;
-
     if (results.length === 0) score = 20;
     else if (results.length === 1) score = 50;
     else if (results.length === 2) score = 75;
     else score = 90;
 
-    // =========================
-    // SAFE RECOMMENDATION
-    // =========================
     let recommendation = "";
+    if (score >= 80) recommendation = "Excellent answer. Keep it up!";
+    else if (score >= 60) recommendation = "Good answer, but you can improve with more details.";
+    else if (score >= 40) recommendation = "Fair answer. Try to be more specific.";
+    else recommendation = "Needs improvement. Review the topic.";
 
-    if (score >= 80) {
-      recommendation = "Excellent answer. Keep it up!";
-    } else if (score >= 60) {
-      recommendation = "Good answer, but you can improve with more details.";
-    } else if (score >= 40) {
-      recommendation = "Fair answer. Try to be more specific.";
-    } else {
-      recommendation = "Needs improvement. Review the topic.";
-    }
-
-    // =========================
-    // FINAL RESPONSE (EXTENDED)
-    // =========================
     return res.json({
       success: true,
       answer,
@@ -116,13 +92,11 @@ app.post("/api/interview", async (req, res) => {
 });
 
 // =========================
-// CHATBOT ROUTE (UNCHANGED)
+// CHATBOT API (IMPROVED CONSISTENCY)
 // =========================
 app.post("/api/chat", async (req, res) => {
   try {
     const { message } = req.body;
-
-    console.log("📩 Incoming message:", message);
 
     if (!message) {
       return res.json({ reply: "No message provided" });
@@ -130,9 +104,7 @@ app.post("/api/chat", async (req, res) => {
 
     const mcpResponse = await fetch("http://127.0.0.1:5051", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tool: "vector_search",
         input: message,
@@ -140,11 +112,11 @@ app.post("/api/chat", async (req, res) => {
     });
 
     if (!mcpResponse.ok) {
-      throw new Error("MCP request failed (Chat)");
+      throw new Error("MCP request failed");
     }
 
     const data = await mcpResponse.json();
-    const results = (data.result || []).slice(0, 3);
+    const results = (data.result || []).slice(0, 5);
 
     const replyText = results.length
       ? results.map(r => r.text).join("\n")

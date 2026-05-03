@@ -10,118 +10,52 @@ const db = new Index({
 });
 
 // ===============================
-// DATA (RAW TEXT LIST)
+// IMPROVED DATA (STRUCTURED)
 // ===============================
 const data = [
-  "gym workout plan for beginners",
-  "home workout routine for beginners",
-  "weight loss exercises for beginners",
-  "cardio training plan for fat loss",
-  "muscle building workout program",
-  "fitness tips for beginners at the gym",
-  "fat burning workout routine",
-  "strength training exercises for beginners",
-  "gym exercises for abs and core",
-  "daily fitness routine at home",
-  "upper body workout routine",
-  "lower body workout exercises",
-  "full body workout plan",
-  "beginner gym training schedule",
-  "healthy lifestyle fitness habits",
-  "HIIT workout for beginners",
-  "stretching routine before workout",
-  "cool down exercises after workout",
-  "best warm up exercises",
-  "beginner yoga routine",
-  "bodyweight exercises at home",
-  "simple core workout at home",
-  "quick 15 minute workout",
-  "fat loss workout at home",
-  "gym routine for busy schedule",
-  "beginner dumbbell workout",
-  "leg day workout routine",
-  "arm workout for beginners",
-  "back workout exercises",
-  "fitness routine without equipment",
-  "mobility exercises for beginners",
-  "posture correction exercises at home",
-  "breathing techniques during workout",
-  "beginner kettlebell workout routine",
-  "low impact workout for beginners",
-  "balance training exercises at home",
-  "recovery day workout routine",
-  "stretching routine for flexibility improvement",
-  "beginner pilates workout at home",
-  "functional training exercises for beginners",
-  "circuit training workout for beginners",
-  "beginner workout for improving stamina",
-  "light workout routine for rest days",
-  "beginner workout for improving coordination",
-  "fitness routine for better sleep",
-  "full body stretching routine for beginners",
-  "gym etiquette tips for new members",
-  "how to use gym equipment safely",
-  "nutrition tips for gym beginners",
-  "pre workout meal ideas for energy",
-  "post workout recovery tips",
-  "how to track fitness progress",
-  "beginner swimming workout routine",
-  "cycling workout plan for weight loss",
-  "gym membership benefits and features",
-  "upper body workout for beginners",
-  "lower body workout at home",
-  "beginner resistance band workout",
-  "home cardio workout without equipment",
-  "beginner treadmill workout plan",
-  "easy workout for weight gain",
-  "beginner workout for muscle tone",
-  "morning workout routine for beginners",
-  "evening workout routine at home",
-  "beginner workout for flexibility",
-  "simple workout for heart health",
-  "beginner workout for endurance",
-  "step by step workout for beginners",
-  "beginner home workout schedule",
-  "easy plank variations for beginners",
-  "beginner squat workout routine",
-  "lunges workout for beginners",
-  "push up variations for beginners",
-  "beginner workout for core strength",
-  "home workout plan for beginners",
-  "beginner workout for fat burning",
-  "simple workout for beginners at gym",
-  "beginner strength training routine",
-  "easy workout routine for students",
-  "beginner workout for weight loss at gym",
-  "beginner workout using resistance bands",
-  "home workout routine for busy people",
-  "beginner workout for improving balance",
-  "beginner workout for joint strength",
-  "simple stretching exercises at home",
-  "beginner workout for active lifestyle",
-  "beginner workout for daily routine",
-  "easy cardio exercises at home",
-  "beginner workout for full body strength",
-  "beginner workout for toning muscles",
-  "beginner workout for beginners schedule",
-  "beginner workout for physical fitness",
-  "beginner workout for healthy lifestyle",
-  "beginner workout for beginners guide",
-  "easy home workout for beginners",
-  "beginner workout tips for consistency",
-  "beginner workout for muscle endurance",
-  "simple home exercises for beginners",
-  "beginner workout for strength building",
-  "beginner workout routine for daily fitness",
-  "easy fitness routine for beginners",
-  "beginner workout for overall health",
-  "beginner workout routine without weights",
-  "beginner workout plan for home training",
-  "beginner workout for improving posture"
+  "Workout Plan: Beginner Gym Routine | Goal: Build strength and endurance | Duration: 3 days per week | Includes: Full body exercises like squats, push-ups, and light weights | Tips: Focus on proper form and consistency",
+
+  "Workout Plan: Home Workout Routine | Goal: Stay active at home | Equipment: None | Includes: Jumping jacks, push-ups, planks | Tips: Maintain regular schedule",
+
+  "Exercise: Push-up | Target Muscle: Chest | Difficulty: Beginner | Equipment: None | Benefits: Builds upper body strength | Tips: Keep body straight and core tight",
+
+  "Exercise: Squat | Target Muscle: Legs | Difficulty: Beginner | Equipment: Bodyweight or Barbell | Benefits: Strengthens legs and glutes | Tips: Keep knees aligned with toes",
+
+  "Exercise: Plank | Target Muscle: Core | Difficulty: Beginner | Equipment: None | Benefits: Improves core stability | Tips: Keep back straight",
+
+  "Workout Plan: Fat Loss Routine | Goal: Burn calories | Includes: Cardio and HIIT exercises | Duration: 20–30 minutes | Tips: Combine with proper diet",
+
+  "Exercise: Bench Press | Target Muscle: Chest | Difficulty: Intermediate | Equipment: Barbell | Benefits: Builds chest and arm strength | Tips: Control the bar movement",
+
+  "Exercise: Deadlift | Target Muscle: Back and Legs | Difficulty: Intermediate | Equipment: Barbell | Benefits: Full body strength | Tips: Keep back straight",
+
+  "Workout Plan: Cardio Routine | Goal: Improve heart health | Includes: Running, cycling, jump rope | Duration: 20 minutes | Tips: Maintain steady pace",
+
+  "Exercise: Lunges | Target Muscle: Legs | Difficulty: Beginner | Equipment: None | Benefits: Improves balance and leg strength | Tips: Keep torso upright",
+
+  "Workout Plan: Muscle Gain Routine | Goal: Increase muscle mass | Includes: Strength training and progressive overload | Tips: Eat enough protein",
+
+  "Exercise: Bicep Curl | Target Muscle: Arms | Difficulty: Beginner | Equipment: Dumbbells | Benefits: Builds arm strength | Tips: Avoid swinging weights",
+
+  "Exercise: Shoulder Press | Target Muscle: Shoulders | Difficulty: Beginner | Equipment: Dumbbells | Benefits: Builds shoulder strength | Tips: Keep controlled movement",
+
+  "Workout Plan: Beginner HIIT | Goal: Burn fat quickly | Includes: High intensity intervals | Duration: 15–20 minutes | Tips: Rest between sets",
+
+  "Exercise: Mountain Climbers | Target Muscle: Core | Difficulty: Beginner | Equipment: None | Benefits: Improves endurance | Tips: Keep fast pace",
+
+  "Workout Plan: Flexibility Routine | Goal: Improve flexibility | Includes: Stretching exercises | Tips: Hold stretches for 20–30 seconds",
+
+  "Exercise: Jump Rope | Target Muscle: Full Body | Difficulty: Beginner | Equipment: Rope | Benefits: Improves cardio fitness | Tips: Stay light on feet",
+
+  "Workout Plan: Core Strength Routine | Goal: Strengthen abs | Includes: Planks, crunches | Tips: Engage core muscles",
+
+  "Exercise: Burpees | Target Muscle: Full Body | Difficulty: Intermediate | Equipment: None | Benefits: Burns calories fast | Tips: Maintain rhythm",
+
+  "Workout Plan: Recovery Routine | Goal: Muscle recovery | Includes: Light stretching and walking | Tips: Stay hydrated"
 ];
 
 // ===============================
-// MOCK EMBEDDING (384 dim)
+// MOCK EMBEDDING (KEEP AS IS)
 // ===============================
 function getEmbedding(text) {
   return Array(384)
@@ -140,16 +74,48 @@ async function run() {
 
   for (let i = 0; i < data.length; i++) {
     const text = data[i];
-    const category = "fitness";
 
-    const vector = getEmbedding(text);
+    // ===============================
+    // CATEGORY LOGIC
+    // ===============================
+    let category = "general";
+    if (text.includes("Exercise:")) category = "exercise";
+    if (text.includes("Workout Plan:")) category = "plan";
 
+    const enhancedText = `
+Category: ${category}
+Content: ${text}
+`.trim();
+
+    const vector = getEmbedding(enhancedText);
+
+    // ===============================
+    // UPSERT WITH IMPROVED METADATA
+    // ===============================
     await db.upsert({
       id: `workout-${i + 1}`,
       vector,
       metadata: {
         text,
         category,
+
+        type: text.includes("Exercise:") ? "exercise" : "plan",
+
+        difficulty: text.includes("Beginner")
+          ? "beginner"
+          : text.includes("Intermediate")
+          ? "intermediate"
+          : "unknown",
+
+        muscle:
+          text.includes("Chest") ? "chest" :
+          text.includes("Legs") ? "legs" :
+          text.includes("Core") ? "core" :
+          text.includes("Back") ? "back" :
+          text.includes("Arms") ? "arms" :
+          text.includes("Shoulders") ? "shoulders" :
+          text.includes("Full Body") ? "full_body" :
+          "general"
       },
     });
 
