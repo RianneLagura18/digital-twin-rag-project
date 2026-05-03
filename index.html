@@ -1,131 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Gym Fitness Chatbot</title>
+<meta charset="UTF-8">
+<title>Fitness Chatbot</title>
 
-  <style>
-    body {
-      font-family: Arial;
-      background: #1e1e2f;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0f172a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
 
-    .chat-box {
-      width: 400px;
-      height: 500px;
-      background: #2c2c3e;
-      border-radius: 10px;
-      display: flex;
-      flex-direction: column;
-    }
+.chat-container {
+  width: 420px;
+  height: 650px;
+  background: #0f172a;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
 
-    .header {
-      background: #4CAF50;
-      padding: 10px;
-      color: white;
-      text-align: center;
-      font-weight: bold;
-    }
+.header {
+  background: #020617;
+  color: white;
+  padding: 15px;
+  text-align: center;
+  font-weight: bold;
+  border-bottom: 1px solid #1e293b;
+}
 
-    .messages {
-      flex: 1;
-      padding: 10px;
-      overflow-y: auto;
-    }
+.messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-    .message {
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 10px;
-      max-width: 70%;
-    }
+.message {
+  padding: 12px 14px;
+  border-radius: 12px;
+  max-width: 75%;
+  font-size: 14px;
+  line-height: 1.4;
+}
 
-    .user {
-      background: #4CAF50;
-      color: white;
-      align-self: flex-end;
-    }
+.user {
+  background: #2563eb;
+  color: white;
+  align-self: flex-end;
+}
 
-    .bot {
-      background: #ddd;
-      align-self: flex-start;
-    }
+.bot {
+  background: #1e293b;
+  color: #e2e8f0;
+  align-self: flex-start;
+}
 
-    .input-area {
-      display: flex;
-      border-top: 1px solid #444;
-    }
+.input-area {
+  display: flex;
+  padding: 10px;
+  background: #020617;
+  border-top: 1px solid #1e293b;
+}
 
-    input {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      outline: none;
-    }
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  background: #1e293b;
+  color: white;
+}
 
-    button {
-      padding: 10px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-  </style>
+button {
+  margin-left: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #2563eb;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+</style>
 </head>
 
 <body>
 
-<div class="chat-box">
-  <div class="header">🏋️ Gym Fitness Chatbot</div>
+<div class="chat-container">
+  <div class="header">💪 Fitness Chatbot</div>
 
-  <div class="messages" id="messages"></div>
+  <div id="messages" class="messages"></div>
+
+  <div id="resultBox" style="padding:10px; color:white;"></div>
 
   <div class="input-area">
-    <input type="text" id="input" placeholder="Ask about fitness..." />
-    <button onclick="send()">Send</button>
+    <input id="input" placeholder="Ask about workouts..." />
+    <button id="sendBtn">Send</button>
+  </div>
+
+  <div style="padding:10px;">
+    <button onclick="quickAsk('beginner workout')">Beginner Workout</button>
+    <button onclick="quickAsk('weight loss tips')">Weight Loss</button>
+    <button onclick="quickAsk('abs workout')">Abs</button>
   </div>
 </div>
 
 <script>
-function send() {
-  const input = document.getElementById("input");
-  const text = input.value;
 
-  if (!text) return;
+let isSending = false;
 
-  addMessage(text, "user");
-  input.value = "";
+document.getElementById("sendBtn").addEventListener("click", send);
 
-  addMessage("Thinking...", "bot");
+document.getElementById("input").addEventListener("keypress", function(e) {
+  if (e.key === "Enter") {
+    send();
+  }
+});
 
-  setTimeout(() => {
-    document.getElementById("messages").lastChild.remove();
-
-    let response = "Stay consistent and train 3x a week.";
-
-    if (text.toLowerCase().includes("beginner")) {
-      response = "Start with squats, push-ups, and light cardio.";
-    } else if (text.toLowerCase().includes("lose weight")) {
-      response = "Combine cardio with calorie deficit diet.";
-    }
-
-    addMessage(response, "bot");
-  }, 1000);
-}
-
-function addMessage(text, type) {
+function addMessage(text, sender) {
   const messages = document.getElementById("messages");
 
   const msg = document.createElement("div");
-  msg.classList.add("message", type);
-  msg.innerText = text;
+  msg.classList.add("message", sender);
+  msg.innerHTML = text;
 
   messages.appendChild(msg);
   messages.scrollTop = messages.scrollHeight;
 }
+
+function quickAsk(text) {
+  document.getElementById("input").value = text;
+  send();
+}
+
+async function send() {
+  if (isSending) return;
+  isSending = true;
+
+  const inputBox = document.getElementById("input");
+  const text = inputBox.value.trim();
+
+  if (!text) {
+    addMessage("⚠️ Please enter a question", "bot");
+    isSending = false;
+    return;
+  }
+
+  addMessage(text, "user");
+  inputBox.value = "";
+
+  // loading
+  const loadingMsg = document.createElement("div");
+  loadingMsg.classList.add("message", "bot");
+  loadingMsg.innerText = "⏳ Thinking...";
+  document.getElementById("messages").appendChild(loadingMsg);
+
+  try {
+    const res = await fetch("https://prison-seltzer-unwashed.ngrok-free.dev/api/interview", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "ngrok-skip-browser-warning": "true"
+      },
+      body: JSON.stringify({ question: text }),
+    });
+
+    const data = await res.json();
+
+    // remove loading
+    loadingMsg.remove();
+
+    let botReply = data.answer || data.result || data.message || "No response";
+
+    // clean output
+    if (botReply.includes("Final Answer:")) {
+      botReply = botReply.split("Final Answer:")[1].trim();
+    }
+
+    if (!botReply || botReply === "No response") {
+      botReply = "⚠️ No answer found. Try another question.";
+    }
+
+    addMessage(`<b>💬 Answer:</b><br><br>${botReply}`, "bot");
+
+    // score + recommendation
+    if (data.score || data.recommendation) {
+      document.getElementById("resultBox").innerHTML = `
+        <div style="background:#1e293b; padding:10px; border-radius:10px;">
+          📊 <b>Score:</b> ${data.score || "N/A"} <br>
+          💡 <b>Recommendation:</b> ${data.recommendation || "Keep going!"}
+        </div>
+      `;
+    }
+
+  } catch (err) {
+    console.error(err);
+    addMessage("❌ Error connecting to server", "bot");
+  }
+
+  isSending = false;
+}
+
 </script>
 
 </body>
