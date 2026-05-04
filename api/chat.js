@@ -1,89 +1,101 @@
 import { Index } from "@upstash/vector";
 
+// ===============================
+// UPSTASH CLIENT
+// ===============================
 const db = new Index({
   url: process.env.UPSTASH_VECTOR_REST_URL,
   token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
 
-// SIMPLE EMBEDDING (temporary)
+// ===============================
+// FREE EMBEDDING (MUST MATCH UPSERT)
+// ===============================
 function getEmbedding(text) {
-  return Array(384)
-    .fill(0)
-    .map((_, i) => {
-      const charCode = text.charCodeAt(i % text.length);
-      return (charCode * (i + 7)) % 100 / 100;
-    });
+  const vector = Array(384).fill(0);
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+
+    for (let j = 0; j < vector.length; j++) {
+      vector[j] += (char * (j + 1)) % 7;
+    }
+  }
+
+  return vector.map(v => v / text.length);
 }
 
-export default async function handler(req, res) {
-  console.log("API HIT");
-
-  // CORS
+// ===============================
+// CORS
+// ===============================
+function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
-  }
+// ===============================
+// HANDLER
+// ===============================
+export default async function handler(req, res) {
+  setCors(res);
+
+  if (req.method === "OPTIONS") return res.status(200).end();
 
   if (req.method !== "POST") {
-    return res.status(405).json({
-      success: false,
-      error: "Method not allowed"
-    });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const body = typeof req.body === "string"
-      ? JSON.parse(req.body)
-      : req.body;
-
-    const { message } = body;
+    const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({
-        success: false,
-        error: "Message required"
-      });
+      return res.status(400).json({ error: "Message is required" });
     }
 
-    console.log("MESSAGE:", message);
-
-    // ✅ FIX: remove await (sync function)
+    // ===============================
+    // VECTOR SEARCH (RAG CORE)
+    // ===============================
     const vector = getEmbedding(message);
-
-    console.log("VECTOR OK");
 
     const results = await db.query({
       vector,
-      topK: 5,
+      topK: 3,
       includeMetadata: true,
     });
 
-    console.log("RAW RESULTS:", results);
+    const context = results
+      ?.map(r => r.metadata?.text)
+      .filter(Boolean)
+      .join("\n");
 
-    const data = results?.result ?? results ?? [];
+    // ===============================
+    // SIMPLE RESPONSE (NO OPENAI)
+    // ===============================
+    const reply = `
+🏋️ Gym Assistant Answer:
 
-    const context =
-      Array.isArray(data) && data.length > 0
-        ? data
-            .map(item => item?.metadata?.text)
-            .filter(Boolean)
-            .join("\n\n")
-        : "Try push-ups, squats, planks, jumping jacks.";
+Based on your query: "${message}"
+
+${context ? `📌 Related knowledge:\n${context}` : "No matching exercise found."}
+
+👉 Follow consistent training for best results.
+    `.trim();
 
     return res.status(200).json({
       success: true,
-      reply: 🏋️ ${message}\n\n${context}
+      reply,
+      debug: {
+        matches: results.length,
+      },
     });
 
   } catch (err) {
-    console.error("🔥 API ERROR:", err);
+    console.error(err);
 
     return res.status(500).json({
-      success: false,
-      error: err.message
+      error: "Server error",
+      details: err.message,
     });
   }
 }
