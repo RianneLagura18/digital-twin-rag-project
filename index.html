@@ -157,7 +157,16 @@ function quickAsk(text) {
 }
 
 /* ===============================
-   SEND FUNCTION (FINAL FIXED)
+   API BASE (AUTO LOCAL OR VERCEL)
+   =============================== */
+const API_BASE =
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
+    ? "http://localhost:5050"
+    : "https://digital-twin-rag-project.vercel.app";
+
+/* ===============================
+   SEND FUNCTION (FIXED)
    =============================== */
 async function send() {
   if (isSending) return;
@@ -179,39 +188,35 @@ async function send() {
   addMessage(text, "user");
   inputBox.value = "";
 
-  // loading
+  // loading UI
   const loadingMsg = document.createElement("div");
   loadingMsg.classList.add("message", "bot");
   loadingMsg.innerText = "⏳ Thinking...";
   document.getElementById("messages").appendChild(loadingMsg);
 
   try {
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message: text })
-    });
+  const res = await fetch(`${API_BASE}/api/chat`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ message: text })
+  });
 
-    const data = await res.json();
-    loadingMsg.remove();
+  const data = await res.json();
+  loadingMsg.remove();
 
-    if (!res.ok) {
-      throw new Error(data.error || "Server error");
-    }
-
-    // display answer
-    addMessage(data.reply, "bot");
-
-    // clear result box (no score in backend)
-    document.getElementById("resultBox").innerHTML = "";
-
-  } catch (err) {
-    console.error(err);
-    loadingMsg.remove();
-    addMessage("❌ Error connecting to server", "bot");
+  if (!res.ok) {
+    throw new Error(data.error || "Server error");
   }
+
+  addMessage(data.reply, "bot");
+
+} catch (err) {
+  console.error(err);
+  loadingMsg.remove();
+  addMessage("❌ Error connecting to server", "bot");
+}
 
   isSending = false;
   btn.disabled = false;
