@@ -14,14 +14,32 @@
 <p id="response"></p>
 
 <script>
-function send() {
+async function send() {
   const input = document.getElementById("input").value;
-  document.getElementById("response").innerText = "Thinking...";
+  const responseEl = document.getElementById("response");
 
-  setTimeout(() => {
-    document.getElementById("response").innerText =
-      "Try basic workouts like push-ups and squats.";
-  }, 1000);
+  responseEl.innerText = "Thinking...";
+
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: input }),
+    });
+
+    const data = await res.json();
+
+    if (data.reply) {
+      responseEl.innerText = data.reply;
+    } else {
+      responseEl.innerText = JSON.stringify(data);
+    }
+
+  } catch (err) {
+    responseEl.innerText = "Error: " + err.message;
+  }
 }
 </script>
 

@@ -5,38 +5,20 @@ const db = new Index({
   token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
 
-// ✅ Improved FREE embedding (better similarity + stable RAG)
+// SIMPLE EMBEDDING (temporary)
 function getEmbedding(text) {
-  const clean = text.toLowerCase().trim();
-  const vector = new Array(384).fill(0);
-
-  const tokens = clean.split(/\s+/);
-
-  for (let t = 0; t < tokens.length; t++) {
-    const token = tokens[t];
-
-    for (let i = 0; i < token.length; i++) {
-      const charCode = token.charCodeAt(i);
-
-      const index =
-        (charCode * (i + 1) * (t + 1)) % 384;
-
-      vector[index] += Math.sin(charCode) * 0.8;
-    }
-  }
-
-  // normalize (VERY important for Upstash scoring)
-  const magnitude = Math.sqrt(
-    vector.reduce((sum, v) => sum + v * v, 0)
-  ) || 1;
-
-  return vector.map(v => v / magnitude);
+  return Array(384)
+    .fill(0)
+    .map((_, i) => {
+      const charCode = text.charCodeAt(i % text.length);
+      return (charCode * (i + 7)) % 100 / 100;
+    });
 }
 
 export default async function handler(req, res) {
   console.log("API HIT");
 
-  // CORS (frontend safe)
+  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -46,48 +28,62 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+    return res.status(405).json({
+      success: false,
+      error: "Method not allowed"
+    });
   }
 
   try {
-    const { message } = req.body;
+    const body = typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
 
-    if (!message || typeof message !== "string") {
-      return res.status(400).json({ error: "Message required" });
+    const { message } = body;
+
+    if (!message) {
+      return res.status(400).json({
+        success: false,
+        error: "Message required"
+      });
     }
 
-    // STEP 1: create vector
+    console.log("MESSAGE:", message);
+
+    // ✅ FIX: remove await (sync function)
     const vector = getEmbedding(message);
 
-    // STEP 2: query Upstash
+    console.log("VECTOR OK");
+
     const results = await db.query({
       vector,
       topK: 5,
       includeMetadata: true,
     });
 
+    console.log("RAW RESULTS:", results);
+
     const data = results?.result ?? results ?? [];
 
-    // STEP 3: build context
     const context =
       Array.isArray(data) && data.length > 0
         ? data
             .map(item => item?.metadata?.text)
             .filter(Boolean)
             .join("\n\n")
-        : "Try push-ups, squats, planks, and basic cardio exercises.";
+        : "Try push-ups, squats, planks, jumping jacks.";
 
-    // STEP 4: response
     return res.status(200).json({
-      reply: `🏋️ ${message}\n\n${context}`,
+      success: true,
+      reply: 🏋️ ${message}\n\n${context}
     });
 
   } catch (err) {
-    console.error("API ERROR:", err);
+    console.error("🔥 API ERROR:", err);
 
     return res.status(500).json({
-      error: "Server error",
-      details: err.message,
+      success: false,
+      error: err.message
     });
   }
 }
