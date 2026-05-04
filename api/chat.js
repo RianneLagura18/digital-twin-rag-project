@@ -1,7 +1,14 @@
 import { Index } from "@upstash/vector";
 
 // ===============================
-// UPSTASH CLIENT
+// VERCEL RUNTIME CONFIG
+// ===============================
+export const config = {
+  runtime: "nodejs",
+};
+
+// ===============================
+// UPSTASH VECTOR DB
 // ===============================
 const db = new Index({
   url: process.env.UPSTASH_VECTOR_REST_URL,
@@ -12,106 +19,124 @@ const db = new Index({
 // SIMPLE EMBEDDING (TEMP RAG)
 // ===============================
 function getEmbedding(text) {
-  return Array(384)
-    .fill(0)
-    .map((_, i) => {
-      const charCode = text.charCodeAt(i % text.length);
-      return (charCode * (i + 7)) % 100 / 100;
-    });
+  const clean = text.toLowerCase();
+  const vector = new Array(384).fill(0);
+
+  for (let i = 0; i < clean.length; i++) {
+    vector[i % 384] += clean.charCodeAt(i) * 0.01;
+  }
+
+  const length = Math.max(clean.length, 1);
+  return vector.map(v => v / length);
 }
 
 // ===============================
-// VERCEL SERVERLESS API
+// MAIN HANDLER
 // ===============================
 export default async function handler(req, res) {
-  // Allow only POST
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+  // ===============================
+  // CORS HANDLING (FRONTEND SAFE)
+  // ===============================
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
   }
 
-  // ===============================
-  // ENV CHECK (CRITICAL)
-  // ===============================
-  if (
-    !process.env.UPSTASH_VECTOR_REST_URL ||
-    !process.env.UPSTASH_VECTOR_REST_TOKEN
-  ) {
-    return res.status(500).json({
-      error: "Missing Upstash environment variables",
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      success: false,
+      error: "Method not allowed",
     });
   }
 
   try {
     const { message } = req.body || {};
 
-    if (!message) {
-      return res.status(400).json({ error: "No message provided" });
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({
+        success: false,
+        error: "Message is required",
+      });
     }
 
     // ===============================
-    // STEP 1: QUERY ENHANCEMENT
+    // STEP 1: EMBEDDING
     // ===============================
-    const enhancedQuery = `fitness workout training: ${message}`;
-    const queryVector = getEmbedding(enhancedQuery);
+    const queryVector = getEmbedding(message);
 
     // ===============================
-    // STEP 2: VECTOR SEARCH (SAFE)
+    // STEP 2: VECTOR SEARCH
     // ===============================
     const results = await db.query({
       vector: queryVector,
-      topK: 8,
+      topK: 5,
       includeMetadata: true,
     });
 
-    const data = results?.result || results || [];
+    const data = results?.result || [];
 
     // ===============================
-    // STEP 3: RANKING LOGIC
+    // STEP 3: RANKING
     // ===============================
     const ranked = data.sort((a, b) => {
-      const scoreA =
-        (a.metadata?.muscle === "legs" ? 3 : 0) +
-        (a.metadata?.muscle === "core" ? 2 : 0) +
-        (a.metadata?.difficulty === "beginner" ? 2 : 0);
-
-      const scoreB =
-        (b.metadata?.muscle === "legs" ? 3 : 0) +
-        (b.metadata?.muscle === "core" ? 2 : 0) +
-        (b.metadata?.difficulty === "beginner" ? 2 : 0);
-
-      return scoreB - scoreA;
+      const score = (item) => {
+        const m = item?.metadata || {};
+        return (
+          (m.muscle === "legs" ? 3 : 0) +
+          (m.muscle === "core" ? 2 : 0) +
+          (m.difficulty === "beginner" ? 2 : 0)
+        );
+      };
+      return score(b) - score(a);
     });
 
     const topResults = ranked.slice(0, 3);
 
     // ===============================
-    // STEP 4: CONTEXT BUILDING (SAFE)
+    // STEP 4: CONTEXT BUILDING
     // ===============================
-    const context = topResults.length
-      ? topResults
-          .map((r) => r.metadata?.text || "")
-          .filter(Boolean)
-          .join("\n\n")
-      : "No workout data found. Suggest basic exercises like push-ups, squats, planks, and jumping jacks.";
+    const context =
+      topResults.length > 0
+        ? topResults
+            .map(r => r?.metadata?.text)
+            .filter(Boolean)
+            .join("\n\n")
+        : "Try basic workouts like push-ups, squats, planks, jumping jacks.";
 
     // ===============================
-    // STEP 5: FINAL RESPONSE
+    // STEP 5: RESPONSE
     // ===============================
-    const answer = `
-🏋️ Based on your request: "${message}"
+    const reply = `🏋️ FITNESS RESPONSE
 
 ${context}
 
-💡 Tip: Stay consistent and focus on proper form over speed.
-    `.trim();
+💡 Tip: consistency > intensity.`;
 
+    // ===============================
+    // FINAL FRONTEND CONTRACT (IMPORTANT)
+    // ===============================
     return res.status(200).json({
-      reply: answer,
-      sources: topResults,
+      success: true,
+      data: {
+        query: message,
+        reply,
+        sources: topResults,
+        count: topResults.length,
+      },
+      meta: {
+        timestamp: new Date().toISOString(),
+        model: "mcp-rag-v1",
+      },
     });
+
   } catch (error) {
     console.error("MCP ERROR:", error);
+
     return res.status(500).json({
+      success: false,
       error: "Server error",
       details: error.message,
     });
