@@ -185,7 +185,7 @@ async function send() {
   document.getElementById("messages").appendChild(loadingMsg);
 
   try {
-    const res = await fetch("/api/chat", {
+    const res = await fetch("https://digital-twin-rag-project.vercel.app/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
