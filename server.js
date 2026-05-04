@@ -1,29 +1,32 @@
-const express = require("express");
+import express from "express";
+import chatRoutes from "./routes/chat.js";
+
 const app = express();
 
-const chatRoutes = require("./routes/chat");
+// ===============================
+// ⚠️ LOCAL DEVELOPMENT ONLY FILE
+// NOT USED IN VERCEL DEPLOYMENT
+// PRODUCTION USES /api/chat.js ONLY
+// ===============================
 
-// middleware
 app.use(express.json());
 
 // routes
 app.use("/api/chat", chatRoutes);
 
-// health check (IMPORTANT for Vercel testing)
+// health check
 app.get("/", (req, res) => {
-  res.status(200).json({
+  res.json({
     status: "ok",
-    message: "Digital Twin RAG API is running"
+    message: "Digital Twin RAG API is running",
   });
 });
 
-// IMPORTANT: export for Vercel
-module.exports = app;
+// start server
+const PORT = process.env.PORT || 5050;
 
-// ONLY RUN LOCALLY (NOT VERCEL)
-if (require.main === module) {
-  const PORT = process.env.PORT || 5050;
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
+export default app;
