@@ -135,15 +135,6 @@ button:disabled {
 let isSending = false;
 
 /* ===============================
-   CONFIG (AUTO DETECT LOCAL / PROD)
-   =============================== */
-const API_BASE =
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-    ? "http://localhost:5050"
-    : "https://digital-twin-rag-project.vercel.app";
-
-/* ===============================
    ADD MESSAGE
    =============================== */
 function addMessage(text, sender) {
@@ -151,23 +142,10 @@ function addMessage(text, sender) {
 
   const msg = document.createElement("div");
   msg.classList.add("message", sender);
-
-  // safe formatting
   msg.innerHTML = text.replace(/\n/g, "<br>");
 
   messages.appendChild(msg);
   messages.scrollTop = messages.scrollHeight;
-}
-
-/* ===============================
-   LOADING MESSAGE
-   =============================== */
-function createLoading() {
-  const loading = document.createElement("div");
-  loading.classList.add("message", "bot");
-  loading.innerText = "⏳ Thinking...";
-  document.getElementById("messages").appendChild(loading);
-  return loading;
 }
 
 /* ===============================
@@ -179,32 +157,35 @@ function quickAsk(text) {
 }
 
 /* ===============================
-   SEND FUNCTION (FINAL VERSION)
+   SEND FUNCTION (FIXED)
    =============================== */
 async function send() {
   if (isSending) return;
   isSending = true;
 
   const btn = document.getElementById("sendBtn");
-  const inputBox = document.getElementById("input");
-
   btn.disabled = true;
 
+  const inputBox = document.getElementById("input");
   const text = inputBox.value.trim();
 
   if (!text) {
     addMessage("⚠️ Please enter a question", "bot");
-    resetUI();
+    isSending = false;
+    btn.disabled = false;
     return;
   }
 
   addMessage(text, "user");
   inputBox.value = "";
 
-  const loadingMsg = createLoading();
+  const loadingMsg = document.createElement("div");
+  loadingMsg.classList.add("message", "bot");
+  loadingMsg.innerText = "⏳ Thinking...";
+  document.getElementById("messages").appendChild(loadingMsg);
 
   try {
-    const res = await fetch(${API_BASE}/api/chat, {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -212,43 +193,23 @@ async function send() {
       body: JSON.stringify({ message: text })
     });
 
-    let data;
-
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error("Invalid JSON response");
-    }
-
+    const data = await res.json();
     loadingMsg.remove();
 
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || "Backend error");
+    if (!res.ok) {
+      throw new Error(data.error || "Server error");
     }
 
-    // ✅ SHOW REAL RESPONSE
-    addMessage(data.reply || "No response from AI", "bot");
+    addMessage(data.reply || "No response", "bot");
 
   } catch (err) {
-    console.error("ERROR:", err);
+    console.error(err);
     loadingMsg.remove();
-
-    // ❗ SMART ERROR MESSAGE (NOT DUMMY)
-    addMessage(
-      "⚠️ Server is currently unavailable. Please try again later.",
-      "bot"
-    );
+    addMessage("❌ Error connecting to server", "bot");
   }
 
-  resetUI();
-}
-
-/* ===============================
-   RESET UI
-   =============================== */
-function resetUI() {
   isSending = false;
-  document.getElementById("sendBtn").disabled = false;
+  btn.disabled = false;
 }
 
 /* ===============================
