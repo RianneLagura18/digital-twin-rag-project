@@ -94,6 +94,18 @@ button:hover {
   background: #1d4ed8;
 }
 
+button:disabled {
+  background: gray;
+  cursor: not-allowed;
+}
+
+.quick-buttons {
+  padding: 10px;
+}
+
+.quick-buttons button {
+  margin: 4px;
+}
 </style>
 </head>
 
@@ -104,6 +116,7 @@ button:hover {
 
   <div id="messages" class="messages"></div>
 
+  <!-- RESULT BOX (optional, currently unused) -->
   <div id="resultBox" style="padding:10px; color:white;"></div>
 
   <div class="input-area">
@@ -111,7 +124,7 @@ button:hover {
     <button id="sendBtn">Send</button>
   </div>
 
-  <div style="padding:10px;">
+  <div class="quick-buttons">
     <button onclick="quickAsk('beginner workout')">Beginner Workout</button>
     <button onclick="quickAsk('weight loss tips')">Weight Loss</button>
     <button onclick="quickAsk('abs workout')">Abs</button>
@@ -121,31 +134,37 @@ button:hover {
 <script>
 let isSending = false;
 
-document.getElementById("sendBtn").addEventListener("click", send);
-
-document.getElementById("input").addEventListener("keypress", function (e) {
-  if (e.key === "Enter") send();
-});
-
+/* ===============================
+   ADD MESSAGE
+   =============================== */
 function addMessage(text, sender) {
   const messages = document.getElementById("messages");
 
   const msg = document.createElement("div");
   msg.classList.add("message", sender);
-  msg.innerHTML = text;
+  msg.innerHTML = text.replace(/\n/g, "<br>");
 
   messages.appendChild(msg);
   messages.scrollTop = messages.scrollHeight;
 }
 
+/* ===============================
+   QUICK BUTTONS
+   =============================== */
 function quickAsk(text) {
   document.getElementById("input").value = text;
   send();
 }
 
+/* ===============================
+   SEND FUNCTION (FINAL FIXED)
+   =============================== */
 async function send() {
   if (isSending) return;
   isSending = true;
+
+  const btn = document.getElementById("sendBtn");
+  btn.disabled = true;
 
   const inputBox = document.getElementById("input");
   const text = inputBox.value.trim();
@@ -153,13 +172,14 @@ async function send() {
   if (!text) {
     addMessage("⚠️ Please enter a question", "bot");
     isSending = false;
+    btn.disabled = false;
     return;
   }
 
   addMessage(text, "user");
   inputBox.value = "";
 
-  // loading message
+  // loading
   const loadingMsg = document.createElement("div");
   loadingMsg.classList.add("message", "bot");
   loadingMsg.innerText = "⏳ Thinking...";
@@ -171,29 +191,21 @@ async function send() {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        message: text   // 
-      }),
+      body: JSON.stringify({ message: text })
     });
 
     const data = await res.json();
-
     loadingMsg.remove();
 
-    // 
-    let botReply = data.reply || "No response from server";
-
-    addMessage(`<b>💬 Answer:</b><br><br>${botReply}`, "bot");
-
-    // optional score system (safe fallback)
-    if (data.score || data.recommendation) {
-      document.getElementById("resultBox").innerHTML = `
-        <div style="background:#1e293b; padding:10px; border-radius:10px;">
-          📊 <b>Score:</b> ${data.score ?? "N/A"} <br>
-          💡 <b>Recommendation:</b> ${data.recommendation ?? "Keep going!"}
-        </div>
-      `;
+    if (!res.ok) {
+      throw new Error(data.error || "Server error");
     }
+
+    // display answer
+    addMessage(data.reply, "bot");
+
+    // clear result box (no score in backend)
+    document.getElementById("resultBox").innerHTML = "";
 
   } catch (err) {
     console.error(err);
@@ -202,7 +214,17 @@ async function send() {
   }
 
   isSending = false;
+  btn.disabled = false;
 }
+
+/* ===============================
+   EVENTS
+   =============================== */
+document.getElementById("sendBtn").addEventListener("click", send);
+
+document.getElementById("input").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") send();
+});
 </script>
 
 </body>
