@@ -5,20 +5,38 @@ const db = new Index({
   token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
 
+// ✅ Improved FREE embedding (better similarity + stable RAG)
 function getEmbedding(text) {
-  const clean = text.toLowerCase();
+  const clean = text.toLowerCase().trim();
   const vector = new Array(384).fill(0);
 
-  for (let i = 0; i < clean.length; i++) {
-    vector[i % 384] += clean.charCodeAt(i) * 0.01;
+  const tokens = clean.split(/\s+/);
+
+  for (let t = 0; t < tokens.length; t++) {
+    const token = tokens[t];
+
+    for (let i = 0; i < token.length; i++) {
+      const charCode = token.charCodeAt(i);
+
+      const index =
+        (charCode * (i + 1) * (t + 1)) % 384;
+
+      vector[index] += Math.sin(charCode) * 0.8;
+    }
   }
 
-  const length = Math.max(clean.length, 1);
-  return vector.map(v => v / length);
+  // normalize (VERY important for Upstash scoring)
+  const magnitude = Math.sqrt(
+    vector.reduce((sum, v) => sum + v * v, 0)
+  ) || 1;
+
+  return vector.map(v => v / magnitude);
 }
 
 export default async function handler(req, res) {
-  // CORS
+  console.log("API HIT");
+
+  // CORS (frontend safe)
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -28,57 +46,48 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== "POST") {
-    return res.status(405).json({ success: false });
+    return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
     const { message } = req.body;
 
-    if (!message) {
-      return res.status(400).json({
-        success: false,
-        error: "Message is required",
-      });
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "Message required" });
     }
 
-    const queryVector = getEmbedding(message);
+    // STEP 1: create vector
+    const vector = getEmbedding(message);
 
+    // STEP 2: query Upstash
     const results = await db.query({
-      vector: queryVector,
+      vector,
       topK: 5,
       includeMetadata: true,
     });
 
-    const data = Array.isArray(results) ? results : [];
+    const data = results?.result ?? results ?? [];
 
-    const ranked = data
-      .filter(Boolean)
-      .sort((a, b) => (b.score || 0) - (a.score || 0));
-
-    const topResults = ranked.slice(0, 3);
-
+    // STEP 3: build context
     const context =
-      topResults.length > 0
-        ? topResults.map(r => r?.metadata?.text).join("\n\n")
-        : "Try basic workouts like push-ups, squats, planks.";
+      Array.isArray(data) && data.length > 0
+        ? data
+            .map(item => item?.metadata?.text)
+            .filter(Boolean)
+            .join("\n\n")
+        : "Try push-ups, squats, planks, and basic cardio exercises.";
 
-    const reply = `🏋️ FITNESS RESPONSE
-
-${context}
-
-💡 Tip: consistency > intensity.`;
-
+    // STEP 4: response
     return res.status(200).json({
-      success: true,
-      reply,
-      sources: topResults,
-      count: topResults.length,
+      reply: `🏋️ ${message}\n\n${context}`,
     });
 
-  } catch (error) {
+  } catch (err) {
+    console.error("API ERROR:", err);
+
     return res.status(500).json({
-      success: false,
-      error: error.message,
+      error: "Server error",
+      details: err.message,
     });
   }
 }
