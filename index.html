@@ -119,15 +119,12 @@ button:hover {
 </div>
 
 <script>
-
 let isSending = false;
 
 document.getElementById("sendBtn").addEventListener("click", send);
 
-document.getElementById("input").addEventListener("keypress", function(e) {
-  if (e.key === "Enter") {
-    send();
-  }
+document.getElementById("input").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") send();
 });
 
 function addMessage(text, sender) {
@@ -162,58 +159,50 @@ async function send() {
   addMessage(text, "user");
   inputBox.value = "";
 
-  // loading
+  // loading message
   const loadingMsg = document.createElement("div");
   loadingMsg.classList.add("message", "bot");
   loadingMsg.innerText = "⏳ Thinking...";
   document.getElementById("messages").appendChild(loadingMsg);
 
   try {
-    const res = await fetch("https://prison-seltzer-unwashed.ngrok-free.dev/api/interview", {
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "ngrok-skip-browser-warning": "true"
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ question: text }),
+      body: JSON.stringify({
+        message: text   // 
+      }),
     });
 
     const data = await res.json();
 
-    // remove loading
     loadingMsg.remove();
 
-    let botReply = data.answer || data.result || data.message || "No response";
-
-    // clean output
-    if (botReply.includes("Final Answer:")) {
-      botReply = botReply.split("Final Answer:")[1].trim();
-    }
-
-    if (!botReply || botReply === "No response") {
-      botReply = "⚠️ No answer found. Try another question.";
-    }
+    // 
+    let botReply = data.reply || "No response from server";
 
     addMessage(`<b>💬 Answer:</b><br><br>${botReply}`, "bot");
 
-    // score + recommendation
+    // optional score system (safe fallback)
     if (data.score || data.recommendation) {
       document.getElementById("resultBox").innerHTML = `
         <div style="background:#1e293b; padding:10px; border-radius:10px;">
-          📊 <b>Score:</b> ${data.score || "N/A"} <br>
-          💡 <b>Recommendation:</b> ${data.recommendation || "Keep going!"}
+          📊 <b>Score:</b> ${data.score ?? "N/A"} <br>
+          💡 <b>Recommendation:</b> ${data.recommendation ?? "Keep going!"}
         </div>
       `;
     }
 
   } catch (err) {
     console.error(err);
+    loadingMsg.remove();
     addMessage("❌ Error connecting to server", "bot");
   }
 
   isSending = false;
 }
-
 </script>
 
 </body>
