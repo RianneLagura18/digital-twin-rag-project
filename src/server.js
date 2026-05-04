@@ -1,45 +1,61 @@
-const express = require("express");
-const cors = require("cors");
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
 
+// Load environment variables
+dotenv.config();
+
+// ===============================
+// INIT APP
+// ===============================
 const app = express();
 
-// middleware
+// ===============================
+// MIDDLEWARE
+// ===============================
 app.use(cors());
 app.use(express.json());
 
-// =========================
-// HEALTH CHECK (IMPORTANT)
-// =========================
+// ===============================
+// TEST ROUTE
+// ===============================
 app.get("/", (req, res) => {
-  res.status(200).send("Digital Twin RAG API is running");
+  res.json({
+    status: "OK",
+    message: "Server is running 🚀",
+  });
 });
 
-// =========================
-// CHAT ROUTE (YOUR MAIN API)
-// =========================
-app.post("/api/chat", async (req, res) => {
+// ===============================
+// CHAT TEST ROUTE (OPTIONAL)
+// ===============================
+app.post("/chat", async (req, res) => {
   try {
     const { message } = req.body;
 
-    // TEMP SAFE RESPONSE (DO NOT BREAK RAG YET)
-    // later we will reconnect your aiService + MCP here
-    res.status(200).json({
-      success: true,
-      reply: "Backend is deployed successfully. RAG/MCP still intact.",
-      input: message || null
+    if (!message) {
+      return res.status(400).json({ error: "No message provided" });
+    }
+
+    // simple response (replace with your real AI/RAG later if needed)
+    const reply = `You said: ${message}`;
+
+    res.json({
+      reply,
     });
-
   } catch (error) {
-    console.error("Chat API Error:", error);
-
+    console.error("Server error:", error);
     res.status(500).json({
-      success: false,
-      error: "Server error"
+      error: "Internal server error",
     });
   }
 });
 
-// =========================
-// EXPORT FOR VERCEL
-// =========================
-module.exports = app;
+// ===============================
+// START SERVER
+// ===============================
+const PORT = process.env.PORT || 5050;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
