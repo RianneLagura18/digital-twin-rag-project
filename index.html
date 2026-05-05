@@ -132,24 +132,6 @@ button:disabled {
 </div>
 
 <script>
-let isSending = false;
-
-function addMessage(text, sender) {
-  const messages = document.getElementById("messages");
-
-  const msg = document.createElement("div");
-  msg.classList.add("message", sender);
-  msg.innerHTML = text.replace(/\n/g, "<br>");
-
-  messages.appendChild(msg);
-  messages.scrollTop = messages.scrollHeight;
-}
-
-function quickAsk(text) {
-  document.getElementById("input").value = text;
-  send();
-}
-
 async function send() {
   if (isSending) return;
   isSending = true;
@@ -170,13 +152,15 @@ async function send() {
   addMessage(text, "user");
   inputBox.value = "";
 
+  const messagesDiv = document.getElementById("messages");
+
   const loadingMsg = document.createElement("div");
   loadingMsg.classList.add("message", "bot");
   loadingMsg.innerText = "⏳ Thinking...";
-  document.getElementById("messages").appendChild(loadingMsg);
+  messagesDiv.appendChild(loadingMsg);
 
   try {
-    const res = await fetch("/api/chat", { // ✅ FIXED
+    const res = await fetch("https://digital-twin-rag-project-2bvlpyiu1-antonettebatuls-projects.vercel.app/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -202,12 +186,6 @@ async function send() {
   isSending = false;
   btn.disabled = false;
 }
-
-document.getElementById("sendBtn").addEventListener("click", send);
-
-document.getElementById("input").addEventListener("keypress", function (e) {
-  if (e.key === "Enter") send();
-});
 </script>
 
 </body>
