@@ -1,6 +1,12 @@
 import { Index } from "@upstash/vector";
 
 // ===============================
+// DEBUG ENV
+// ===============================
+console.log("ENV URL:", process.env.UPSTASH_VECTOR_REST_URL);
+console.log("ENV TOKEN:", process.env.UPSTASH_VECTOR_REST_TOKEN ? "EXISTS" : "MISSING");
+
+// ===============================
 // UPSTASH CLIENT
 // ===============================
 const db = new Index({
@@ -40,7 +46,9 @@ function setCors(res) {
 export default async function handler(req, res) {
   setCors(res);
 
-  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
 
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -54,34 +62,56 @@ export default async function handler(req, res) {
     }
 
     // ===============================
-    // VECTOR SEARCH (RAG CORE)
+    // EMBEDDING
     // ===============================
     const vector = getEmbedding(message);
 
-    const results = await db.query({
-      vector,
-      topK: 3,
-      includeMetadata: true,
-    });
+    let results = [];
 
+    // ===============================
+    // UPSTASH SEARCH
+    // ===============================
+    try {
+      results = await db.query({
+        vector,
+        topK: 3,
+        includeMetadata: true,
+      });
+    } catch (upstashError) {
+      console.error("UPSTASH ERROR:", upstashError);
+
+      return res.status(500).json({
+        error: "Upstash query failed",
+        details: upstashError.message,
+      });
+    }
+
+    // ===============================
+    // CONTEXT BUILDING
+    // ===============================
     const context = results
       ?.map(r => r.metadata?.text)
       .filter(Boolean)
       .join("\n");
 
     // ===============================
-    // SIMPLE RESPONSE (NO OPENAI)
+    // RESPONSE GENERATION
     // ===============================
     const reply = `
 🏋️ Gym Assistant Answer:
 
 Based on your query: "${message}"
 
-${context ? `📌 Related knowledge:\n${context}` : "No matching exercise found."}
+${context
+  ? `📌 Related knowledge:\n${context}`
+  : "No matching exercise found."}
 
 👉 Follow consistent training for best results.
-    `.trim();
+`.trim();
 
+    // ===============================
+    // RETURN RESPONSE
+    // ===============================
     return res.status(200).json({
       success: true,
       reply,
@@ -91,7 +121,7 @@ ${context ? `📌 Related knowledge:\n${context}` : "No matching exercise found.
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("GENERAL ERROR:", err);
 
     return res.status(500).json({
       error: "Server error",
