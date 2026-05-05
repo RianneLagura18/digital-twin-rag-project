@@ -134,9 +134,6 @@ button:disabled {
 <script>
 let isSending = false;
 
-/* ===============================
-   ADD MESSAGE
-   =============================== */
 function addMessage(text, sender) {
   const messages = document.getElementById("messages");
 
@@ -148,17 +145,11 @@ function addMessage(text, sender) {
   messages.scrollTop = messages.scrollHeight;
 }
 
-/* ===============================
-   QUICK BUTTON
-   =============================== */
 function quickAsk(text) {
   document.getElementById("input").value = text;
   send();
 }
 
-/* ===============================
-   SEND FUNCTION (FIXED)
-   =============================== */
 async function send() {
   if (isSending) return;
   isSending = true;
@@ -185,7 +176,7 @@ async function send() {
   document.getElementById("messages").appendChild(loadingMsg);
 
   try {
-    const res = await fetch("https://digital-twin-rag-project.vercel.app/api/chat", {
+    const res = await fetch("/api/chat", { // ✅ FIXED
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -212,9 +203,6 @@ async function send() {
   btn.disabled = false;
 }
 
-/* ===============================
-   EVENTS
-   =============================== */
 document.getElementById("sendBtn").addEventListener("click", send);
 
 document.getElementById("input").addEventListener("keypress", function (e) {
