@@ -1,0 +1,32 @@
+MCP Test Result — AusBiz Fitness Center Digital Twin
+QA Tester: Rion Poblete 
+
+MCP SERVER DETAILS
+- File: src/mcp-server/index.js
+- Port: 5051
+- Tool: vector_search
+- Database: Upstash Vector (AusBizFitnessCenter)
+
+TEST QUERY 1: AusBiz Fitness Center membership plans
+- Status: PASS 
+- Top Score: 0.530
+
+TEST QUERY 2: opening hours
+- Status: PASS 
+- Top Score: 0.530
+
+TEST QUERY 3: fitness classes
+- Status: PASS 
+- Top Score: 0.528
+
+TEST QUERY 4: gym equipment
+- Status: PASS 
+- Top Score: 0.530
+
+TEST QUERY 5: personal training
+- Status: PASS 
+- Top Score: 0.528
+
+OVERALL RESULT: PASS 
+MCP server running correctly on port 5051.
+All 5 queries returned relevant results.
