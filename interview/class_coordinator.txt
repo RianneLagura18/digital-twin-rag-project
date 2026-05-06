@@ -1,0 +1,11 @@
+Candidate: Riley Quinn
+
+Technical Question: How do you plan classes during peak hours?
+
+Answer: I look at the peak-hour statistics to avoid overcrowding the main gym floor.
+
+Score: 84/100
+
+Result: PASS
+
+Recommendation: Hire; proactive use of the Digital Twin data for scheduling.

@@ -1,0 +1,11 @@
+Candidate: Jordan Lee
+
+Technical Question: What do you do if the telemetry shows a machine is "Available" but it's physically broken?
+
+Answer: I would manually update the status to "Maintenance" and check the sensor.
+
+Score: 95/100
+
+Result: PASS
+
+Recommendation: Strong technical candidate; understands the link between physical and digital states.

@@ -1,70 +1,64 @@
-# Implementation Plan
-## AusBiz Fitness Center — Digital Twin
+# Digital Twin Gym Chatbot — Implementation Plan
+
+## 1. Overview
+This implementation plan outlines the step-by-step execution of the Digital Twin Gym Chatbot system based on the approved system design.
+
+## 2. Milestones
+
+### Milestone 1: Backend Setup
+- Set up API endpoints
+- Connect to database
+- Configure Upstash Vector
+
+### Milestone 2: RAG Integration
+- Generate embeddings
+- Store vectors in Upstash
+- Implement similarity search
+
+### Milestone 3: Frontend UI
+- Build chatbot interface
+- Connect frontend to backend API
+
+### Milestone 4: Testing & Debugging
+- Test chatbot responses
+- Fix bugs and optimize performance
 
 ---
 
-## Overview
+## 3. Task Breakdown
 
-This implementation plan breaks down the full project into weekly tasks with owners and dependencies. It is based on the approved technical design document.
+### Backend Developer (Antonette)
+- API development
+- Data processing
+- Vector database integration
 
----
+### Frontend Developer (Rianne)
+- UI design
+- Chat interface
+- API integration
 
-## Week 1 — Setup & Foundation
+### Data Analyst (Mika)
+- Analyze gym data
+- Improve chatbot responses
+- Validate outputs
 
-| Task | Owner | Status |
-|---|---|---|
-| Set up GitHub repo and invite collaborators | Mika | Complete |
-| Write prd.md for AusBiz Fitness Center | Adrian | Complete |
-| Write agents.md | Rion | Complete |
-| Update README.md | Rianne | Complete |
-| Create virtual model plan for gym equipment | Siv | Complete |
-| Set up ClickUp board and write test plan | Rion | Complete |
+### Digital Twin Engineer (Siv)
+- Simulate gym data
+- Sync real-time data
 
----
-
-## Week 2 — Technical Design & Vectors
-
-| Task | Owner | Status |
-|---|---|---|
-| Create docs/design.md | Rion | Complete |
-| Create docs/implementation-plan.md | Rion | Complete |
-| Set up Upstash Vector index | Antonette | In Progress |
-| Load gym knowledge base into Upstash (45+ vectors) | Adrian | In Progress |
-| Test vector search queries | Rion | In Progress |
-| Set up Next.js project structure | Rianne | In Progress |
+### QA Tester (Dri)
+- Testing
+- Bug reporting
 
 ---
 
-## Week 3 — MCP & Interview Simulation
-
-| Task | Owner | Status |
-|---|---|---|
-| Build MCP server (rolldice pattern) | Antonette | To Do |
-| Configure .vscode/mcp.json | Antonette | To Do |
-| Create /jobs folder with 5 job descriptions | Mika | To Do |
-| Run interview simulations | Siv | To Do |
-| Test MCP server queries | Rion | To Do |
-| Write interview summary | Rion | To Do |
-| Update agents.md with MCP instructions | Rion | To Do |
+## 4. Dependencies
+- Backend must be completed before frontend integration
+- Vector database required for chatbot responses
+- Testing depends on full system integration
 
 ---
 
-## Dependencies
-
-- Week 2 vector loading must be done before Week 3 MCP testing
-- design.md must be approved before implementation begins
-- Upstash index must exist before vectors can be loaded
-- MCP server must be built before interview simulation can run
-
----
-
-## Ownership & Responsibilities
-
-| Member | Role | Main Responsibility |
-|---|---|---|
-| Mika | Project Manager | Timeline, ClickUp, job descriptions |
-| Adrian | Data Analyst | Knowledge base data, vector loading |
-| Antonette | Backend Developer | API, Upstash setup, MCP server |
-| Rianne | Frontend Developer | Next.js UI, chat interface |
-| Siv | Digital Twin Engineer | Simulation logic, interview simulation |
-| Rion | QA Tester | Testing, test plan, MCP validation |
+## 5. Timeline
+- Week 6: Design + Plan + Initial Setup
+- Week 7: Development + Testing

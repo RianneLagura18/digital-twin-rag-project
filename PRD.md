@@ -1,54 +1,56 @@
-## Digital Twin I - PRD
+# Digital Twin I - PRD
 
 ## Project Overview
-RAG-based AI assistant for gym-related queries.
+RAG-based AI assistant using dataset.
 
 ## Objectives
-- Answer fitness questions
-- Provide workout and diet suggestions
+- Answer questions
+- Use dataset
 
-## Frontend / UI Plan
+## Team Roles
+- Member 1: Project Manager
+- Member 2: Data Analyst
+- Member 3: Backend Developer
+- Member 4: Frontend Developer
+- Member 5: Digital Twin / Simulation Engineer
+- Member 6: QA Tester
+
+## Update
+Initial PRD submission
+
+## Frontend / User Interface Plan
 
 ### Overview
-The frontend will provide a simple and user-friendly interface for gym-related queries.
+The frontend will provide an interactive and user-friendly interface for a gym-focused RAG-based assistant. The system will help users ask questions related to workouts, fitness routines, nutrition, and gym guidance, and display AI-generated responses clearly and efficiently.
 
 ### Features
-- Input field for user questions (e.g., workouts, diet, exercises)
-- Chat-like interface to display AI responses
-- Suggested questions (e.g., "Best workout for beginners")
-- Loading indicator while processing
-- Error messages for invalid inputs
+- Input field for user fitness-related queries (e.g., workouts, diet, exercises)
+- Chat-like interface for displaying AI responses
+- Suggested questions (e.g., "Best workout for beginners", "High-protein meals")
+- Loading indicator while processing queries
+- Error messages for invalid or empty inputs
 
 ### User Flow
-1. User opens the interface
-2. User types a question
-3. System processes the query
-4. Response is displayed
-5. User can ask follow-up questions
+1. User opens the gym assistant interface
+2. User types a question (e.g., “What is a good workout for beginners?”)
+3. The system processes the query using the RAG backend
+4. AI-generated response is displayed in chat format
+5. User can continue asking follow-up questions
 
-## Digital Twin / Simulation - Siv
+### UI Design Plan
+- Clean and modern fitness-themed design
+- Use of chat bubbles for interaction
+- Responsive layout for mobile and desktop users
+- Use of icons related to fitness (e.g., dumbbells, heart rate)
+- Consistent color palette (e.g., black, green, white for gym theme)
 
-### Use Case
-The Digital Twin will act as the "Live Knowledge Base" for the chatbot. It allows the AI to provide real-time updates on gym equipment availability and health status.
+### Technologies
+- HTML, CSS, JavaScript
+- Optional: React.js for dynamic UI
+- Optional: Tailwind CSS for modern styling
 
-### Simulation Idea
-* **Virtual Asset Modeling:** We will model 15 assets (Treadmills, Squat Racks, Cable Machines).
-* **Real-time Telemetry Simulation:** A Python script will generate mock data for each machine:
-    * `status`: (Available / In-Use / Maintenance)
-    * `usage_frequency`: (High / Medium / Low)
-    * `estimated_wait_time`: (Minutes)
-* **Integration:** The simulation will update a local JSON/Markdown file, which the RAG system will query to provide dynamic answers like "Which treadmill is free?" or "When was the leg press last cleaned?"
-
----
-## 5. Digital Twin / Simulation - Siv
-
-### Use Case: Real-Time Gym Status Engine
-The Digital Twin will act as the "Live Knowledge Base" for our Gym Chatbot. It allows the AI to provide real-time updates on equipment availability and maintenance.
-
-### Simulation Idea
-* **Virtual Asset Modeling:** We will model 15 assets (5 Treadmills, 3 Squat Racks, 2 Bench Presses, 5 Cable Machines).
-* **Real-time Telemetry Simulation:** I will create a Python script to generate mock data for:
-    * `status`: (Available / In-Use / Maintenance)
-    * `usage_frequency`: (High / Medium / Low)
-    * `last_cleaned`: (Timestamp)
-* **Integration:** This simulation will update a local JSON file. The RAG system will query this file to answer questions like *"Which treadmill is free?"* or *"When was the leg press last cleaned?"*
+### Future Improvements
+- Add user profiles and workout tracking
+- Add personalized workout recommendations
+- Include video or image demonstrations of exercises
+- Add progress tracking dashboard
