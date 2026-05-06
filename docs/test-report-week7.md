@@ -1,8 +1,8 @@
-# Week 3 Test Report
+# Week 7 Test Report
 ## AusBiz Fitness Center — Digital Twin
 
-**Tester:** Rion Poblete
-**Week:** 3
+QA Tester: Rion Poblete
+
 
 ---
 
