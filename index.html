@@ -116,7 +116,6 @@ button:disabled {
 
   <div id="messages" class="messages"></div>
 
-  <!-- RESULT BOX (optional, currently unused) -->
   <div id="resultBox" style="padding:10px; color:white;"></div>
 
   <div class="input-area">
@@ -132,6 +131,33 @@ button:disabled {
 </div>
 
 <script>
+let isSending = false;
+
+/* ===============================
+   ADD MESSAGE
+   =============================== */
+function addMessage(text, sender) {
+  const messages = document.getElementById("messages");
+
+  const msg = document.createElement("div");
+  msg.classList.add("message", sender);
+  msg.innerHTML = text.replace(/\n/g, "<br>");
+
+  messages.appendChild(msg);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+/* ===============================
+   QUICK BUTTON
+   =============================== */
+function quickAsk(text) {
+  document.getElementById("input").value = text;
+  send();
+}
+
+/* ===============================
+   SEND FUNCTION
+   =============================== */
 async function send() {
   if (isSending) return;
   isSending = true;
@@ -160,7 +186,8 @@ async function send() {
   messagesDiv.appendChild(loadingMsg);
 
   try {
-    const res = await fetch("https://digital-twin-rag-project-2bvlpyiu1-antonettebatuls-projects.vercel.app/api/chat", {
+    // ✅ FIXED: now uses Vercel API route correctly
+    const res = await fetch("/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -186,6 +213,15 @@ async function send() {
   isSending = false;
   btn.disabled = false;
 }
+
+/* ===============================
+   EVENTS
+   =============================== */
+document.getElementById("sendBtn").addEventListener("click", send);
+
+document.getElementById("input").addEventListener("keypress", function (e) {
+  if (e.key === "Enter") send();
+});
 </script>
 
 </body>
