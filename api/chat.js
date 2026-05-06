@@ -34,7 +34,7 @@ function getEmbedding(text) {
     }
   }
 
-  return vector.map((v) => v / normalized.length);
+  return vector.map((v) => v / (normalized.length || 1));
 }
 
 // ===============================
@@ -97,38 +97,90 @@ export default async function handler(req, res) {
       .join("\n");
 
     // ===============================
-    // SMART RESPONSE LOGIC (FIX FOR "FIXED ANSWER")
-    // ===============================
-    let reply = "";
+// SMART RESPONSE LOGIC (UPGRADED - NON-STATIC)
+// ===============================
+let reply = "";
 
-    if (context && context.length > 0) {
-      reply = `
-🏋️ Gym Assistant:
+// helper for variation
+function randomFrom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
-Based on your question: "${message}"
+function generateSmartReply(message, context) {
+  const lower = message.toLowerCase();
 
-📌 Relevant knowledge:
+  const intros = [
+    "💪 Here's something useful:",
+    "🔥 Let’s break it down:",
+    "🏋️ Based on your question:",
+  ];
+
+  let intro = randomFrom(intros);
+  let advice = "";
+  let followUp = "";
+
+  // ===============================
+  // INTENT DETECTION
+  // ===============================
+  if (lower.includes("lose weight") || lower.includes("fat")) {
+    advice =
+      "Focus on a calorie deficit, combine strength training with cardio (like walking or running), and stay consistent.";
+    followUp =
+      "Do you want a simple weekly fat-loss workout plan (home or gym)?";
+  } else if (lower.includes("muscle") || lower.includes("gain")) {
+    advice =
+      "Train with progressive overload, eat enough protein, and allow proper recovery between workouts.";
+    followUp =
+      "Want a muscle-building workout split based on your schedule?";
+  } else if (lower.includes("beginner")) {
+    advice =
+      "Start with basic movements like squats, push-ups, and light cardio to build consistency and form.";
+    followUp = "Do you prefer home workouts or going to the gym?";
+  } else if (lower.includes("protein")) {
+    advice =
+      "Protein helps repair and build muscle. Good sources include chicken, eggs, fish, and whey.";
+    followUp = "Are you trying to build muscle or lose weight?";
+  } else if (lower.includes("workout")) {
+    advice =
+      "A balanced workout includes push, pull, and leg exercises spread across the week.";
+    followUp =
+      "Do you want a beginner, intermediate, or advanced workout plan?";
+  } else if (lower.includes("hello") || lower.includes("hi")) {
+    return "👋 Hey! I'm your gym assistant. Tell me your goal (lose weight, gain muscle, etc.) and I’ll help you out 💪";
+  } else {
+    advice =
+      "I can help with workouts, nutrition, and fitness planning tailored to your goals.";
+    followUp =
+      "Tell me your goal (lose weight, gain muscle, etc.) so I can guide you better.";
+  }
+
+  // ===============================
+  // FINAL RESPONSE BUILD
+  // ===============================
+  if (context && context.length > 0) {
+    return `
+${intro}
+
+📌 From your data:
 ${context}
 
-💡 Tip: Stay consistent with your training for best results.
-      `.trim();
-    } else {
-      // smarter fallback instead of always same answer
-      const lower = message.toLowerCase();
+💡 ${advice}
 
-      if (lower.includes("protein")) {
-        reply =
-          "💪 Protein helps build muscle. Good sources: chicken, eggs, fish, whey.";
-      } else if (lower.includes("workout")) {
-        reply =
-          "🏋️ A good workout plan includes push, pull, and leg days for balance.";
-      } else if (lower.includes("hello")) {
-        reply = "👋 Hello! Ask me about workouts, nutrition, or fitness plans.";
-      } else {
-        reply =
-          "🤖 I couldn’t find exact data, but try asking about workouts, nutrition, or gym routines.";
-      }
-    }
+👉 ${followUp}
+    `.trim();
+  } else {
+    return `
+${intro}
+
+${advice}
+
+👉 ${followUp}
+    `.trim();
+  }
+}
+
+// generate reply
+reply = generateSmartReply(message, context);
 
     // ===============================
     // RESPONSE
