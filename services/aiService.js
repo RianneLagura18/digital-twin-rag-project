@@ -6,9 +6,6 @@ const db = new Index({
   token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
 
-// ===============================
-// MAIN RAG FUNCTION
-// ===============================
 export async function handleChat(req, res) {
   try {
     const { message } = req.body;
@@ -18,9 +15,9 @@ export async function handleChat(req, res) {
     }
 
     // ===============================
-    // EMBEDDING
+    // EMBEDDING (IMPORTANT: await)
     // ===============================
-    const queryVector = embed(message);
+    const queryVector = await embed(message);
 
     // ===============================
     // VECTOR SEARCH
@@ -31,29 +28,17 @@ export async function handleChat(req, res) {
       includeMetadata: true,
     });
 
-    const data = results?.matches || results || [];
+    const data = results?.result || results?.matches || [];
 
-    // ===============================
-    // RANKING
-    // ===============================
     const topResults = data
-      .sort((a, b) => (b.score || 0) - (a.score || 0))
       .slice(0, 3);
 
     const context = topResults
       .map(r => r?.metadata?.text)
-      .join("\n\n");
-
-    // ===============================
-    // SIMPLE INTELLIGENT RESPONSE (FREE RAG)
-    // ===============================
-    const reply =
-  context && context.length > 0
-    ? context
-    : "No relevant fitness data found in Upstash database.";
+      .join("\n");
 
     return res.status(200).json({
-      reply,
+      reply: context || "No results found",
       sources: topResults,
     });
 

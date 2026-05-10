@@ -11,43 +11,37 @@ const data = [
   {
     id: "1",
     text: "Push-ups build chest and triceps strength",
-    muscle: "chest",
-    difficulty: "beginner",
   },
   {
     id: "2",
     text: "Squats build leg strength and glutes",
-    muscle: "legs",
-    difficulty: "beginner",
   },
   {
     id: "3",
     text: "Plank improves core stability",
-    muscle: "core",
-    difficulty: "beginner",
   },
   {
     id: "4",
     text: "Deadlifts strengthen back and full body",
-    muscle: "back",
-    difficulty: "intermediate",
   },
   {
     id: "5",
     text: "Running improves cardio endurance",
-    muscle: "cardio",
-    difficulty: "beginner",
   },
 ];
 
 async function run() {
-  console.log("🚀 Uploading vectors...");
+  console.log("🚀 Upserting vectors (REAL BGE embeddings)...");
 
   for (const item of data) {
+    const vector = await embed(item.text);
+
     await db.upsert({
       id: item.id,
-      vector: embed(item.text),
-      metadata: item,
+      vector,
+      metadata: {
+        text: item.text,
+      },
     });
 
     console.log("✅ Uploaded:", item.id);
