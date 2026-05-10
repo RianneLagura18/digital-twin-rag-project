@@ -168,12 +168,7 @@ async function send() {
   const inputBox = document.getElementById("input");
   const text = inputBox.value.trim();
 
-  if (!text) {
-    addMessage("⚠️ Please enter a question", "bot");
-    isSending = false;
-    btn.disabled = false;
-    return;
-  }
+  if (!text) return;
 
   addMessage(text, "user");
   inputBox.value = "";
@@ -186,26 +181,26 @@ async function send() {
   messagesDiv.appendChild(loadingMsg);
 
   try {
-    // ✅ FIXED: now uses Vercel API route correctly
     const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ message: text })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text }),
     });
 
     const data = await res.json();
+
+    console.log("🔎 FRONTEND RESPONSE:", data);
+
     loadingMsg.remove();
 
     if (!res.ok) {
       throw new Error(data.error || "Server error");
     }
 
-    addMessage(data.reply || "No response", "bot");
+    // ✅ IMPORTANT FIX HERE
+    addMessage(data.reply, "bot");
 
   } catch (err) {
-    console.error(err);
     loadingMsg.remove();
     addMessage("❌ Error connecting to server", "bot");
   }
