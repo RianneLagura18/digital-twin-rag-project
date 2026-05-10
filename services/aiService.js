@@ -15,16 +15,12 @@ export async function handleChat(req, res) {
     }
 
     // ===============================
-    // STEP 1: EMBEDDING
+    // EMBEDDING
     // ===============================
     const queryVector = await embed(message);
 
-    // DEBUG (REMOVE LATER IF YOU WANT)
-    console.log("📩 MESSAGE:", message);
-    console.log("📊 VECTOR SAMPLE:", queryVector.slice(0, 5));
-
     // ===============================
-    // STEP 2: VECTOR SEARCH
+    // VECTOR SEARCH
     // ===============================
     const results = await db.query({
       vector: queryVector,
@@ -32,49 +28,39 @@ export async function handleChat(req, res) {
       includeMetadata: true,
     });
 
-    console.log("🔎 RAW UPSTASH RESULTS:", JSON.stringify(results, null, 2));
+    console.log("RAW RESULTS:", results);
 
     // ===============================
-    // FIX: SAFE PARSING (IMPORTANT)
-    // Upstash can return: result OR matches OR array
+    // FIXED PARSING (IMPORTANT)
     // ===============================
-    const data =
-      results?.result ??
-      results?.matches ??
-      results ??
-      [];
+    const data = results?.result || [];
 
-    if (!Array.isArray(data) || data.length === 0) {
+    if (data.length === 0) {
       return res.status(200).json({
-        reply: "No relevant fitness data found in Upstash.",
+        reply: "No relevant fitness data found.",
         sources: [],
       });
     }
 
     // ===============================
-    // STEP 3: BASIC RANKING SAFETY
+    // CLEAN SORTING
     // ===============================
     const topResults = data
       .filter(r => r?.metadata?.text)
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
       .slice(0, 3);
 
-    // ===============================
-    // STEP 4: CONTEXT BUILDING
-    // ===============================
     const context = topResults
       .map(r => r.metadata.text)
       .join("\n");
 
-    // ===============================
-    // STEP 5: FINAL RESPONSE (PURE RAG)
-    // ===============================
     return res.status(200).json({
       reply: context,
       sources: topResults,
     });
 
   } catch (err) {
-    console.error("RAG ERROR:", err);
+    console.error(err);
     return res.status(500).json({ error: "Server error" });
   }
 }
