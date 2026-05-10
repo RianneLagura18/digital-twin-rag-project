@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { Index } from "@upstash/vector";
+import embed from "./lib/embeddings.js";
 
 // ===============================
 // UPSTASH CLIENT
@@ -10,64 +11,133 @@ const db = new Index({
 });
 
 // ===============================
-// DATA
+// FITNESS DATA
 // ===============================
 const data = [
-  "Workout Plan: Beginner Gym Routine | Build strength | squats, push-ups",
-  "Workout Plan: Home Workout Routine | No equipment | jumping jacks, planks",
-  "Exercise: Push-up | Chest | beginner bodyweight exercise",
-  "Exercise: Squat | Legs | strength training",
-  "Exercise: Plank | Core | stability exercise",
-  "Workout Plan: Fat Loss Routine | HIIT cardio training",
-  "Exercise: Bench Press | Chest | intermediate strength",
-  "Exercise: Deadlift | Back and Legs | full body strength",
-  "Workout Plan: Cardio Routine | running, cycling",
-  "Exercise: Lunges | Legs | balance and strength"
+  {
+    id: "workout-1",
+    text: "Workout Plan: Beginner Gym Routine | Build strength using squats, push-ups, and lunges.",
+    category: "plan",
+    muscle: "full body",
+    difficulty: "beginner",
+  },
+
+  {
+    id: "workout-2",
+    text: "Workout Plan: Home Workout Routine | No equipment exercises including jumping jacks, planks, and mountain climbers.",
+    category: "plan",
+    muscle: "full body",
+    difficulty: "beginner",
+  },
+
+  {
+    id: "workout-3",
+    text: "Exercise: Push-up | Chest exercise using bodyweight to build upper body strength.",
+    category: "exercise",
+    muscle: "chest",
+    difficulty: "beginner",
+  },
+
+  {
+    id: "workout-4",
+    text: "Exercise: Squat | Leg strength exercise targeting quadriceps, glutes, and hamstrings.",
+    category: "exercise",
+    muscle: "legs",
+    difficulty: "beginner",
+  },
+
+  {
+    id: "workout-5",
+    text: "Exercise: Plank | Core stability exercise that strengthens abdominal muscles.",
+    category: "exercise",
+    muscle: "core",
+    difficulty: "beginner",
+  },
+
+  {
+    id: "workout-6",
+    text: "Workout Plan: Fat Loss Routine | HIIT cardio training for burning calories and improving endurance.",
+    category: "plan",
+    muscle: "full body",
+    difficulty: "intermediate",
+  },
+
+  {
+    id: "workout-7",
+    text: "Exercise: Bench Press | Chest strength training exercise using barbells or dumbbells.",
+    category: "exercise",
+    muscle: "chest",
+    difficulty: "intermediate",
+  },
+
+  {
+    id: "workout-8",
+    text: "Exercise: Deadlift | Full body strength exercise targeting back, legs, and core muscles.",
+    category: "exercise",
+    muscle: "back",
+    difficulty: "advanced",
+  },
+
+  {
+    id: "workout-9",
+    text: "Workout Plan: Cardio Routine | Running, cycling, and jump rope exercises for heart health.",
+    category: "plan",
+    muscle: "cardio",
+    difficulty: "beginner",
+  },
+
+  {
+    id: "workout-10",
+    text: "Exercise: Lunges | Lower body exercise improving balance, coordination, and leg strength.",
+    category: "exercise",
+    muscle: "legs",
+    difficulty: "beginner",
+  },
 ];
 
 // ===============================
-// FREE EMBEDDING (384-DIM, MATCHES CHAT)
-// ===============================
-function getEmbedding(text) {
-  const vector = Array(384).fill(0);
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-
-    for (let j = 0; j < vector.length; j++) {
-      vector[j] += (char * (j + 1)) % 7;
-    }
-  }
-
-  return vector.map(v => v / text.length);
-}
-
-// ===============================
-// RUN UPSERT
+// UPSERT FUNCTION
 // ===============================
 async function run() {
-  console.log("🚀 Upsert started (FREE MODE)");
 
-  for (let i = 0; i < data.length; i++) {
-    const text = data[i];
+  try {
 
-    const category = text.includes("Exercise") ? "exercise" : "plan";
+    console.log("🚀 Starting Upstash vector upload...");
 
-    const vector = getEmbedding(text);
+    for (const item of data) {
 
-    await db.upsert({
-      id: `workout-${i + 1}`,
-      vector,
-      metadata: {
-        text,
-        category,
-      },
-    });
+      // ===============================
+      // CREATE EMBEDDING
+      // ===============================
+      const vector = embed(item.text);
 
-    console.log(`✅ Inserted: workout-${i + 1}`);
+      // ===============================
+      // UPSERT TO DATABASE
+      // ===============================
+      await db.upsert({
+        id: item.id,
+        vector,
+        metadata: {
+          text: item.text,
+          category: item.category,
+          muscle: item.muscle,
+          difficulty: item.difficulty,
+        },
+      });
+
+      console.log(`✅ Uploaded: ${item.id}`);
+    }
+
+    console.log("🎉 DONE: All vectors uploaded successfully.");
+
+  } catch (error) {
+
+    console.error("❌ UPSERT ERROR:", error);
+
   }
-
-  console.log("🎉 DONE: Vector database ready");
 }
 
+// ===============================
+// RUN SCRIPT
+// ===============================
 run();

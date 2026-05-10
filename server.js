@@ -4,6 +4,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { Index } from "@upstash/vector";
+import embed from "./lib/embeddings.js";
 
 const app = express();
 
@@ -19,28 +20,16 @@ const db = new Index({
 });
 
 // ===============================
-// FAKE EMBEDDING (TEMP - OK FOR DEMO)
-// ===============================
-function getEmbedding(text) {
-  const clean = text.toLowerCase();
-  const vector = new Array(384).fill(0);
-
-  for (let i = 0; i < clean.length; i++) {
-    vector[i % 384] += clean.charCodeAt(i) * 0.01;
-  }
-
-  const length = Math.max(clean.length, 1);
-  return vector.map(v => v / length);
-}
-
-// ===============================
 // CHAT ROUTE (RAG PIPELINE)
 // ===============================
 app.post("/api/chat", async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message } = req.body || {};
 
-    if (!message) {
+    // ===============================
+    // VALIDATION
+    // ===============================
+    if (!message || !message.trim()) {
       return res.status(400).json({
         success: false,
         error: "Message is required",
@@ -48,9 +37,11 @@ app.post("/api/chat", async (req, res) => {
     }
 
     // ===============================
-    // STEP 1: EMBEDDING
+    // STEP 1: CREATE QUERY VECTOR
     // ===============================
-    const queryVector = getEmbedding(message);
+    const queryVector = embed(message);
+
+    console.log("🧠 User Message:", message);
 
     // ===============================
     // STEP 2: VECTOR SEARCH
@@ -61,15 +52,21 @@ app.post("/api/chat", async (req, res) => {
       includeMetadata: true,
     });
 
-    console.log("🔎 UPSTASH RAW RESULTS:", JSON.stringify(results, null, 2));
-
-    // ✅ FIX: correct Upstash response handling
-    const data = Array.isArray(results) ? results : [];
-
-    console.log("📦 PARSED RESULTS:", data);
+    console.log(
+      "🔎 RAW VECTOR RESULTS:",
+      JSON.stringify(results, null, 2)
+    );
 
     // ===============================
-    // STEP 3: RANKING (FIXED)
+    // STEP 3: SAFE RESULT PARSING
+    // ===============================
+    const data =
+      Array.isArray(results)
+        ? results
+        : results?.matches || [];
+
+    // ===============================
+    // STEP 4: SORT BY SCORE
     // ===============================
     const ranked = data
       .filter(Boolean)
@@ -78,12 +75,15 @@ app.post("/api/chat", async (req, res) => {
     const topResults = ranked.slice(0, 3);
 
     console.log(
-      "🏷 TOP RESULTS METADATA:",
-      topResults.map(r => r?.metadata)
+      "🏷 TOP RESULTS:",
+      topResults.map(r => ({
+        score: r.score,
+        text: r?.metadata?.text,
+      }))
     );
 
     // ===============================
-    // STEP 4: CONTEXT BUILDING
+    // STEP 5: BUILD CONTEXT
     // ===============================
     const context =
       topResults.length > 0
@@ -91,18 +91,34 @@ app.post("/api/chat", async (req, res) => {
             .map(r => r?.metadata?.text)
             .filter(Boolean)
             .join("\n\n")
-        : "Try basic workouts like push-ups, squats, planks, jumping jacks.";
+        : "No relevant fitness information found.";
 
     // ===============================
-    // STEP 5: RESPONSE
+    // STEP 6: DYNAMIC RESPONSE
     // ===============================
-    const reply = `🏋️ FITNESS RESPONSE
+    const tips = [
+      "💡 Tip: consistency beats intensity.",
+      "💡 Tip: proper form prevents injuries.",
+      "💡 Tip: progressive overload builds strength.",
+      "💡 Tip: recovery and sleep matter too.",
+      "💡 Tip: warm up before every workout.",
+    ];
+
+    const randomTip =
+      tips[Math.floor(Math.random() * tips.length)];
+
+    const reply = `
+🏋️ Fitness Assistant
 
 ${context}
 
-💡 Tip: consistency > intensity.`;
+${randomTip}
+`.trim();
 
-    return res.json({
+    // ===============================
+    // FINAL RESPONSE
+    // ===============================
+    return res.status(200).json({
       success: true,
       reply,
       sources: topResults,
@@ -110,19 +126,28 @@ ${context}
     });
 
   } catch (error) {
-    console.error("SERVER ERROR:", error);
+
+    console.error("❌ SERVER ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      error: error.message,
+      error: error.message || "Internal server error",
     });
+
   }
+});
+
+// ===============================
+// HEALTH CHECK
+// ===============================
+app.get("/", (req, res) => {
+  res.send("🚀 RAG Fitness Server Running");
 });
 
 // ===============================
 // START SERVER
 // ===============================
-const PORT = 5050;
+const PORT = process.env.PORT || 5050;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
