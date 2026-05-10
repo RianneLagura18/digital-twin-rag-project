@@ -47,17 +47,10 @@ export async function handleChat(req, res) {
     // ===============================
     // SIMPLE INTELLIGENT RESPONSE (FREE RAG)
     // ===============================
-    const reply = `
-🏋️ Fitness AI
-
-Based on your question: "${message}"
-
-📌 Best matches:
-${context || "No data found"}
-
-💡 Advice:
-Train consistently, focus on form, and increase intensity slowly.
-`.trim();
+    const reply =
+  context && context.length > 0
+    ? context
+    : "No relevant fitness data found in Upstash database.";
 
     return res.status(200).json({
       reply,
