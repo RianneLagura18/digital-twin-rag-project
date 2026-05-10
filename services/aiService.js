@@ -1,152 +1,71 @@
 import { Index } from "@upstash/vector";
+import embed from "../lib/embeddings.js";
 
-// ===============================
-// UPSTASH CLIENT
-// ===============================
 const db = new Index({
   url: process.env.UPSTASH_VECTOR_REST_URL,
   token: process.env.UPSTASH_VECTOR_REST_TOKEN,
 });
 
 // ===============================
-// EMBEDDING (TEMP RAG - KEEP)
-// ===============================
-function getEmbedding(text) {
-  const safeText = text || "";
-  return Array(384)
-    .fill(0)
-    .map((_, i) => {
-      const charCode = safeText.charCodeAt(i % safeText.length || 1);
-      return ((charCode * (i + 7)) % 100) / 100;
-    });
-}
-
-// ===============================
 // MAIN RAG FUNCTION
 // ===============================
 export async function handleChat(req, res) {
   try {
-    const { message } = req.body || {};
+    const { message } = req.body;
 
     if (!message) {
-      return res.status(400).json({ error: "No message provided" });
+      return res.status(400).json({ error: "No message" });
     }
 
     // ===============================
-    // STEP 1: QUERY ENHANCEMENT
+    // EMBEDDING
     // ===============================
-    const enhancedQuery = `fitness workout training: ${message}`;
-    const queryVector = getEmbedding(enhancedQuery);
+    const queryVector = embed(message);
 
     // ===============================
-    // STEP 2: VECTOR SEARCH (UPSTASH)
+    // VECTOR SEARCH
     // ===============================
     const results = await db.query({
       vector: queryVector,
-      topK: 8,
+      topK: 5,
       includeMetadata: true,
     });
 
-    const data = Array.isArray(results) ? results : results?.matches || [];
+    const data = results?.matches || results || [];
 
     // ===============================
-    // STEP 3: RANKING LOGIC
+    // RANKING
     // ===============================
-    const ranked = data.sort((a, b) => {
-      const scoreA =
-        (a?.metadata?.muscle === "legs" ? 3 : 0) +
-        (a?.metadata?.muscle === "core" ? 2 : 0) +
-        (a?.metadata?.difficulty === "beginner" ? 2 : 0);
+    const topResults = data
+      .sort((a, b) => (b.score || 0) - (a.score || 0))
+      .slice(0, 3);
 
-      const scoreB =
-        (b?.metadata?.muscle === "legs" ? 3 : 0) +
-        (b?.metadata?.muscle === "core" ? 2 : 0) +
-        (b?.metadata?.difficulty === "beginner" ? 2 : 0);
-
-      return scoreB - scoreA;
-    });
-
-    const topResults = ranked.slice(0, 3);
+    const context = topResults
+      .map(r => r?.metadata?.text)
+      .join("\n\n");
 
     // ===============================
-    // STEP 4: CONTEXT BUILDING
+    // SIMPLE INTELLIGENT RESPONSE (FREE RAG)
     // ===============================
-    const context =
-      topResults.length > 0
-        ? topResults
-            .map((r) => r?.metadata?.text)
-            .filter(Boolean)
-            .join("\n\n")
-        : "No workout data found. Suggest basic exercises like push-ups, squats, planks, and jumping jacks.";
+    const reply = `
+🏋️ Fitness AI
 
-    // ===============================
-    // STEP 5: AI-STYLE RESPONSE
-    // ===============================
-    function randomFrom(arr) {
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
+Based on your question: "${message}"
 
-    const intros = [
-      "💪 Here's your fitness guidance:",
-      "🔥 Let’s break this down:",
-      "🏋️ Based on your request:",
-    ];
+📌 Best matches:
+${context || "No data found"}
 
-    const intro = randomFrom(intros);
-
-    const lower = message.toLowerCase();
-
-    let advice = "";
-    let followUp = "";
-
-    if (lower.includes("lose weight") || lower.includes("fat")) {
-      advice =
-        "Focus on calorie deficit, strength training, and light cardio consistently.";
-      followUp = "Do you want a simple fat-loss workout plan?";
-    } else if (lower.includes("muscle") || lower.includes("gain")) {
-      advice =
-        "Train with progressive overload and eat enough protein for recovery.";
-      followUp = "Want a muscle-building split plan?";
-    } else if (lower.includes("beginner")) {
-      advice =
-        "Start with basics like squats, push-ups, and planks to build consistency.";
-      followUp = "Home or gym workouts?";
-    } else if (lower.includes("protein")) {
-      advice =
-        "Protein helps muscle repair. Sources: chicken, eggs, fish, whey.";
-      followUp = "Are you bulking or cutting?";
-    } else {
-      advice =
-        "I can help with workouts, nutrition, and training plans based on your goal.";
-      followUp = "Tell me your goal so I can personalize it.";
-    }
-
-    // ===============================
-    // FINAL OUTPUT
-    // ===============================
-    const answer = `
-${intro}
-
-🏋️ Based on your request: "${message}"
-
-📌 Workout info:
-${context}
-
-💡 ${advice}
-
-👉 ${followUp}
+💡 Advice:
+Train consistently, focus on form, and increase intensity slowly.
 `.trim();
 
     return res.status(200).json({
-      reply: answer,
+      reply,
       sources: topResults,
     });
-  } catch (error) {
-    console.error("RAG ERROR:", error);
 
-    return res.status(500).json({
-      error: "Server error",
-      details: error.message,
-    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
